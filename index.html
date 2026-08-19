@@ -1,0 +1,1207 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Marca que ha JS ANTES do CSS pintar. Todo o estado "escondido" das
+     animacoes depende desta classe: sem ela — JS desligado, script com erro,
+     leitor antigo — a pagina aparece inteira, sem depender de nada. -->
+<script>document.documentElement.className+=" js";</script>
+
+<title>Realce Odontologia Integrada — dentista e ortodontista em João Monlevade/MG</title>
+<meta name="description" content="Clínica odontológica na Rua Negrão de Lima, 51 — Alvorada, João Monlevade/MG. Ortodontia, clareamento, implantes, limpeza e restaurações com a Dra. Fernanda Magalhães, CRO-MG 44763. 4,9 no Google. Atendemos PASA e IPSM.">
+<link rel="canonical" href="https://marcel0gs.github.io/realce-odontologia/">
+<meta name="theme-color" content="#FDF8F2">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Realce Odontologia Integrada — João Monlevade/MG">
+<meta property="og:description" content="Ortodontia, clareamento, implantes e clínica geral. Tratamento com a mesma dentista do início ao fim.">
+<meta property="og:image" content="https://marcel0gs.github.io/realce-odontologia/assets/img/og-logo.webp">
+<meta property="og:locale" content="pt_BR">
+
+<link rel="icon" href="assets/img/favicon.png" type="image/png">
+<link rel="preload" as="image" href="assets/img/hero-recepcao.webp" fetchpriority="high">
+
+<!-- ====================================================================
+     CSS embutido de proposito, nao por preguica. Como arquivo externo ele
+     bloqueia a renderizacao; numa pagina unica o cache separado nao paga
+     esse atraso. Mesmo padrao do Caldas Coelho e do Rancho Canaa.
+
+     ATENCAO ao editar: caminho de imagem aqui e relativo ao HTML
+     ("assets/img/..."), nao a um style.css ("../img/...").
+     ==================================================================== -->
+<style>
+/* =====================================================================
+   Realce Odontologia Integrada — Joao Monlevade/MG
+   ---------------------------------------------------------------------
+   A paleta nao foi inventada: foi amostrada das fotos da propria clinica.
+   O creme e o fundo do arquivo da logo (#FDF8F2). O verde-sage e a parede
+   da sala de espera. O dourado e a letra da logo e as frases nas paredes.
+   A madeira e o painel da recepcao.
+
+   Nada de azul de laboratorio nem dente 3D — a identidade dela existe,
+   e boa, e esta construida em obra. O site segue ela.
+   ===================================================================== */
+
+:root{
+  --creme:#FDF8F2;
+  --creme-esc:#F4EDE2;
+  --areia:#E7DCCA;
+  --dourado:#8A6935;        /* escurecido pra passar em contraste sobre creme */
+  --dourado-claro:#C9A96A;
+  --madeira:#9D8261;
+  --sage:#BCCBB0;
+  --sage-claro:#E2EADB;
+  --sage-esc:#5F7355;
+  --marrom:#3B2E26;
+  --marrom-esc:#2A2019;
+  --papel:#FFFFFF;
+  --texto:#2E2620;
+  --texto-suave:#665B51;
+  --borda:#E6DCCB;
+  --raio:14px;
+  --raio-g:22px;
+  --sombra:0 1px 2px rgba(59,46,38,.05), 0 10px 30px rgba(59,46,38,.09);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+body{
+  margin:0;
+  background:var(--papel);
+  color:var(--texto);
+  font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  font-size:17px;
+  line-height:1.65;
+  overflow-x:hidden;
+}
+
+img{max-width:100%;display:block;height:auto}
+a{color:inherit}
+p{margin:0 0 1rem}
+h1,h2,h3,h4{
+  margin:0;
+  font-family:Georgia,"Times New Roman",serif;
+  font-weight:400;
+  line-height:1.18;
+  letter-spacing:-.01em;
+}
+h1{font-size:clamp(2rem,5.4vw,3.4rem)}
+h2{font-size:clamp(1.6rem,4vw,2.5rem)}
+h3{font-size:1.18rem}
+
+/* Topo sticky sem folga entrega toda secao com o titulo por baixo da barra. */
+[id]{scroll-margin-top:88px}
+
+/* ====================== aparecer ao rolar ======================
+   Tres cuidados que fazem essa animacao nao virar defeito:
+
+   1. O estado escondido so vale quando existe JS (a classe .js e posta pelo
+      proprio script, na primeira linha do <head>). Sem JS, sem observador ou
+      com erro no script, a pagina aparece inteira e legivel. Animacao que
+      esconde conteudo em CSS puro e um site em branco esperando por nada.
+   2. Nada acima da dobra usa .rv — o hero aparece de imediato. Conteudo que
+      some ao carregar assusta e atrasa a leitura do que mais importa.
+   3. prefers-reduced-motion desliga tudo. Nao e enfeite: movimento pode
+      causar mal-estar em quem tem sensibilidade vestibular. */
+.rv{transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+.js .rv{opacity:0;transform:translateY(20px)}
+.js .rv.vis{opacity:1;transform:none}
+.js .rv--esq{transform:translateX(-24px)}
+.js .rv--dir{transform:translateX(24px)}
+.js .rv--esq.vis,.js .rv--dir.vis{transform:none}
+@media (prefers-reduced-motion:reduce){
+  .js .rv,.js .rv--esq,.js .rv--dir{opacity:1;transform:none;transition:none}
+}
+
+.env{width:min(1160px,100% - 2.5rem);margin-inline:auto}
+.env--estreito{width:min(800px,100% - 2.5rem);margin-inline:auto}
+.secao{padding:clamp(3.5rem,8vw,6rem) 0}
+.secao--creme{background:var(--creme)}
+.secao--sage{background:var(--sage-claro)}
+.secao--escura{background:var(--marrom);color:#F0E9DF}
+.secao--escura h2,.secao--escura h3{color:#fff}
+.secao--escura .chamada{color:#CFC2B4}
+
+.olho{
+  display:inline-block;margin-bottom:.8rem;
+  font-size:.72rem;font-weight:700;letter-spacing:.19em;
+  text-transform:uppercase;color:var(--dourado);
+}
+.secao--escura .olho{color:var(--dourado-claro)}
+.chamada{max-width:58ch;color:var(--texto-suave);font-size:1.05rem}
+.cabeca{margin-bottom:clamp(2rem,4vw,3rem)}
+
+/* ====================== botoes ====================== */
+.btn{
+  display:inline-flex;align-items:center;gap:.55rem;
+  padding:.9rem 1.7rem;border-radius:999px;
+  background:var(--dourado);color:#fff;border:2px solid var(--dourado);
+  font-weight:600;font-size:1rem;text-decoration:none;
+  transition:background .18s,border-color .18s,transform .18s;
+}
+.btn:hover{background:#6F5429;border-color:#6F5429;transform:translateY(-1px)}
+.btn--linha{background:transparent;color:var(--marrom);border-color:var(--areia)}
+.btn--linha:hover{background:var(--creme-esc);border-color:var(--dourado);color:var(--marrom)}
+.secao--escura .btn--linha{color:#fff;border-color:rgba(255,255,255,.35)}
+.secao--escura .btn--linha:hover{background:rgba(255,255,255,.1);border-color:#fff}
+
+/* ====================== topo ======================
+   O fundo do topo e exatamente o creme do arquivo da logo, pra que o
+   recorte retangular da logo se dissolva na barra em vez de aparecer
+   como um bloco. Mexer numa cor sem mexer na outra faz a emenda aparecer. */
+.topo{
+  position:sticky;top:0;z-index:60;
+  background:rgba(253,248,242,.95);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--borda);
+}
+.topo__linha{display:flex;align-items:center;gap:1rem;min-height:74px}
+.marca{display:flex;align-items:center;flex:none;text-decoration:none}
+.marca img{width:auto;height:42px}
+.menu{display:none;margin-left:auto;gap:1.5rem}
+.menu a{text-decoration:none;font-size:.94rem;color:var(--texto-suave)}
+.menu a:hover{color:var(--dourado)}
+.topo__cta{margin-left:auto;padding:.62rem 1.2rem;font-size:.92rem}
+@media (min-width:1000px){
+  .menu{display:flex}
+  .topo__cta{margin-left:1.5rem}
+}
+@media (max-width:430px){
+  .marca img{height:32px}
+  .topo__cta{padding:.55rem 1rem;font-size:.85rem}
+}
+
+/* ====================== hero ====================== */
+.hero{
+  position:relative;
+  background:linear-gradient(165deg,var(--creme) 0%,var(--creme-esc) 55%,var(--areia) 100%);
+  padding:clamp(2.8rem,8vw,5.5rem) 0 clamp(3rem,7vw,5rem);
+  overflow:hidden;
+}
+.hero::after{
+  content:"";position:absolute;right:-16%;top:-32%;
+  width:min(640px,82vw);aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,169,106,.28),transparent 68%);
+  pointer-events:none;
+}
+.hero__grade{display:grid;gap:clamp(2rem,5vw,3.5rem);align-items:center;position:relative;z-index:1}
+@media (min-width:900px){.hero__grade{grid-template-columns:1.05fr .95fr}}
+.hero h1{color:var(--marrom);margin-bottom:1.1rem}
+.hero h1 em{font-style:italic;color:var(--dourado)}
+.hero__texto{max-width:52ch;color:#54473D;font-size:1.07rem}
+.hero__acoes{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.8rem}
+.hero__selo{
+  display:inline-flex;align-items:center;flex-wrap:wrap;gap:.4rem;margin-bottom:1.3rem;
+  padding:.42rem .95rem;border-radius:999px;
+  background:rgba(255,255,255,.8);border:1px solid var(--areia);
+  font-size:.79rem;letter-spacing:.04em;color:var(--texto-suave);
+}
+.hero__selo b{color:var(--marrom);font-weight:700}
+.hero__selo .estrelas{color:#D9A441;letter-spacing:.06em}
+
+.moldura{
+  position:relative;border-radius:var(--raio-g);overflow:hidden;
+  box-shadow:var(--sombra);background:var(--creme-esc);
+}
+.moldura img{width:100%}
+
+/* ====================== faixa de credenciais ====================== */
+.credenciais{background:var(--marrom);color:#EFE7DB;padding:1.5rem 0}
+.credenciais__lista{
+  display:flex;flex-wrap:wrap;justify-content:center;
+  gap:.6rem clamp(1.2rem,4vw,3rem);text-align:center;
+}
+.credenciais__item{font-size:.86rem;letter-spacing:.03em}
+.credenciais__item b{color:var(--dourado-claro);font-weight:600}
+
+/* ====================== promessas ====================== */
+.promessas{display:grid;gap:1.1rem}
+@media (min-width:820px){.promessas{grid-template-columns:repeat(3,1fr)}}
+.promessa{
+  background:var(--papel);border:1px solid var(--borda);
+  border-radius:var(--raio);padding:1.7rem 1.5rem;box-shadow:var(--sombra);
+}
+.promessa__marca{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--sage-claro);color:var(--sage-esc);
+  display:grid;place-items:center;margin-bottom:1rem;
+  font-family:Georgia,serif;font-size:1.05rem;
+}
+.promessa h3{margin-bottom:.5rem;color:var(--marrom)}
+.promessa p{margin:0;color:var(--texto-suave);font-size:.97rem}
+
+/* ====================== tratamentos ======================
+   Os icones vieram do site do Caldas Coelho, reaproveitados. O circulo e
+   desenhado pelo CSS e o PNG entra dentro dele a 72% — nao e o arquivo que
+   faz o circulo. Consequencia: icone novo pode vir com fundo transparente
+   a vontade, mas nunca com fundo colorido proprio (viraria circulo dentro
+   de circulo). Se um arquivo faltar, o card fica com o circulo sage vazio,
+   que e discreto — <img> que falta vira icone quebrado, por isso o desenho
+   entra como background. */
+.tratamentos{display:grid;gap:1.1rem}
+@media (min-width:600px){.tratamentos{grid-template-columns:repeat(2,1fr)}}
+@media (min-width:960px){.tratamentos{grid-template-columns:repeat(4,1fr)}}
+.tratamento{
+  background:var(--papel);border:1px solid var(--borda);border-radius:var(--raio);
+  padding:1.5rem 1.4rem;transition:transform .18s,box-shadow .18s,border-color .18s;
+}
+.tratamento:hover{transform:translateY(-3px);box-shadow:var(--sombra);border-color:var(--areia)}
+.tratamento h3{margin-bottom:.45rem;color:var(--marrom);font-size:1.08rem}
+.tratamento p{margin:0;color:var(--texto-suave);font-size:.93rem}
+.ico{
+  width:60px;height:60px;border-radius:50%;margin-bottom:1rem;
+  background:var(--sage-claro) center/72% auto no-repeat;
+}
+.ico--ortodontia{background-image:url('assets/img/icones/ortodontia.webp')}
+.ico--clareamento{background-image:url('assets/img/icones/dentistica.webp')}
+.ico--implante{background-image:url('assets/img/icones/implantodontia.webp')}
+.ico--limpeza{background-image:url('assets/img/icones/periodontia.webp')}
+.ico--restauracao{background-image:url('assets/img/icones/endodontia.webp')}
+.ico--cirurgia{background-image:url('assets/img/icones/ofm.webp')}
+.ico--infantil{background-image:url('assets/img/icones/odontopediatria.webp')}
+.ico--harmonizacao{background-image:url('assets/img/icones/harmonizacao.webp')}
+
+/* ====================== galeria ======================
+   Sem texto por cima de foto. Foi a licao do Caldas Coelho: pra o texto ter
+   contraste o veu precisa ser escuro, e no fim a foto some — o oposto do que
+   a secao existe pra fazer. Aqui o texto tem o espaco dele e as fotos tem o
+   delas. */
+.galeria{display:grid;gap:.9rem;grid-template-columns:repeat(2,1fr)}
+@media (min-width:860px){.galeria{grid-template-columns:repeat(3,1fr)}}
+/* Sao seis fotos com proporcoes diferentes. Sem uma proporcao fixa, cada
+   linha do grid fica na altura da foto mais alta e as menores deixam um
+   buraco de fundo embaixo. O aspect-ratio + object-fit:cover resolve, e
+   seis itens fecham linha certinho tanto em 2 quanto em 3 colunas — por
+   isso nao ha item "largo" aqui: item que ocupa duas colunas volta a
+   deixar sobra em um dos dois breakpoints. */
+.galeria figure{
+  margin:0;border-radius:var(--raio);overflow:hidden;
+  background:var(--creme-esc);aspect-ratio:4/3;
+}
+.galeria img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.galeria figure:hover img{transform:scale(1.04)}
+
+/* ====================== avaliacoes ======================
+   105 avaliacoes com 4,9 e o maior ativo desse cliente. O numero vem antes
+   dos depoimentos de proposito: ele e verificavel e nao depende de quem le
+   acreditar em elogio.
+
+   Sao seis depoimentos, e seis cards de uma vez viram parede de texto que
+   ninguem le. Por isso o carrossel: um por vez, girando sozinho. */
+.placar{
+  display:flex;flex-wrap:wrap;align-items:center;gap:1.2rem 2.4rem;
+  padding:1.6rem 1.8rem;margin-bottom:2rem;
+  background:var(--papel);border:1px solid var(--borda);
+  border-radius:var(--raio);box-shadow:var(--sombra);
+}
+.placar__nota{
+  font-family:Georgia,serif;font-size:clamp(2.8rem,7vw,3.6rem);
+  line-height:1;color:var(--marrom);font-variant-numeric:tabular-nums;
+}
+.placar__contagem{display:block;color:var(--texto-suave);font-size:.92rem;margin-top:.35rem}
+.placar__contagem b{color:var(--marrom);font-variant-numeric:tabular-nums}
+.placar__fonte{margin-left:auto;font-size:.82rem;color:var(--texto-suave)}
+
+/* As estrelas sao duas camadas do mesmo glifo: a de baixo apagada, a de cima
+   dourada e recortada por largura. Animar essa largura de 0 a 98% "preenche"
+   as cinco estrelas e deixa a quinta pela metade, que e exatamente o que 4,9
+   significa. Sem imagem, sem SVG, sem biblioteca. */
+.estrelas{color:#D9A441;letter-spacing:.12em}
+.estrelas-med{position:relative;display:inline-block;line-height:1;font-size:1.25rem;letter-spacing:.12em}
+.estrelas-med span{display:block;white-space:nowrap}
+.estrelas-med .vazias{color:#E3D8C6}
+.estrelas-med .cheias{
+  position:absolute;left:0;top:0;overflow:hidden;color:#D9A441;
+  width:98%;
+}
+.js .estrelas-med .cheias{width:0;transition:width 1.5s cubic-bezier(.16,1,.3,1) .15s}
+.js .estrelas-med.contou .cheias{width:98%}
+
+/* Sem JS o carrossel nao existe: os seis depoimentos ficam empilhados e
+   todos legiveis. O JS e que troca o layout pra trilho deslizante. */
+.avaliacoes{display:grid;gap:1.1rem}
+.aval{
+  background:var(--papel);border:1px solid var(--borda);
+  border-radius:var(--raio);padding:1.7rem 1.6rem;
+  display:flex;flex-direction:column;gap:.9rem;
+}
+.aval blockquote{margin:0;color:var(--texto);font-size:1.02rem}
+.aval__quem{margin-top:auto;display:flex;align-items:center;gap:.8rem}
+.aval__ini{
+  width:44px;height:44px;border-radius:50%;flex:none;
+  background:var(--sage);color:#2E3B28;
+  display:grid;place-items:center;
+  font-weight:700;font-size:.9rem;letter-spacing:.03em;
+}
+.aval__quem b{display:block;font-weight:600;color:var(--marrom);font-size:.95rem}
+.aval__quem .fonte{display:block;font-size:.79rem;color:var(--texto-suave)}
+
+.carrossel__janela{overflow:hidden}
+.carrossel--on .avaliacoes{
+  display:flex;gap:0;
+  transition:transform .55s cubic-bezier(.22,1,.36,1);
+  will-change:transform;
+}
+.carrossel--on .carrossel__janela{max-width:780px;margin-inline:auto}
+.carrossel--on .aval{flex:0 0 100%;min-width:100%}
+/* O trilho e uma linha de flex: a altura fica a do depoimento mais alto e
+   nao pula a cada troca. Custa um pouco de espaco em branco e evita o
+   solavanco, que e o defeito que mais se nota em carrossel. */
+.carrossel--on .aval{align-self:stretch}
+
+.carrossel__controles{
+  display:none;align-items:center;justify-content:center;gap:1rem;margin-top:1.6rem;
+}
+.carrossel--on .carrossel__controles{display:flex}
+.seta{
+  width:44px;height:44px;border-radius:50%;flex:none;
+  background:var(--papel);border:1px solid var(--borda);color:var(--marrom);
+  display:grid;place-items:center;cursor:pointer;
+  font-size:1.1rem;line-height:1;
+  transition:border-color .18s,background .18s,transform .18s;
+}
+.seta:hover{border-color:var(--dourado);color:var(--dourado);transform:translateY(-1px)}
+.seta:focus-visible{outline:2px solid var(--dourado);outline-offset:2px}
+.pontos{display:flex;align-items:center;gap:.45rem}
+.ponto{
+  width:8px;height:8px;padding:0;border:0;border-radius:999px;
+  background:#CFC3B0;cursor:pointer;
+  transition:width .3s cubic-bezier(.22,1,.36,1),background .3s;
+}
+.ponto[aria-current="true"]{width:26px;background:var(--dourado)}
+.ponto:focus-visible{outline:2px solid var(--dourado);outline-offset:3px}
+
+/* ====================== convenios ====================== */
+.convenios{display:flex;flex-wrap:wrap;gap:.9rem;margin-top:1.8rem}
+.convenio{
+  display:flex;flex-direction:column;gap:.15rem;
+  padding:1rem 1.6rem;border-radius:var(--raio);
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+  min-width:min(230px,100%);
+}
+.convenio b{font-family:Georgia,serif;font-size:1.3rem;letter-spacing:.06em;color:#fff}
+.convenio span{font-size:.8rem;color:#C6B8A8}
+
+/* ====================== dupla foto + texto ====================== */
+.dupla{display:grid;gap:clamp(2rem,5vw,3.5rem);align-items:center}
+@media (min-width:900px){.dupla{grid-template-columns:.9fr 1.1fr}}
+@media (min-width:900px){.dupla--inverte{grid-template-columns:1.1fr .9fr}}
+.lista{list-style:none;margin:1.4rem 0 0;padding:0;display:grid;gap:.7rem}
+.lista li{position:relative;padding-left:1.6rem;color:var(--texto-suave)}
+.lista li::before{
+  content:"";position:absolute;left:0;top:.62em;
+  width:7px;height:7px;border-radius:50%;background:var(--dourado-claro);
+}
+
+/* ====================== citacao ====================== */
+.citacao blockquote{
+  margin:0;font-family:Georgia,serif;font-style:italic;
+  font-size:clamp(1.4rem,3.6vw,2.1rem);line-height:1.32;color:var(--marrom);
+}
+.citacao figcaption{
+  margin-top:1.1rem;font-size:.78rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dourado);
+}
+
+/* ====================== duvidas ====================== */
+.faq{display:grid;gap:.7rem}
+.faq details{
+  background:var(--papel);border:1px solid var(--borda);
+  border-radius:var(--raio);padding:1.1rem 1.3rem;
+}
+.faq summary{
+  cursor:pointer;list-style:none;font-weight:600;color:var(--marrom);
+  display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;
+}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";color:var(--dourado);font-size:1.4rem;line-height:1}
+.faq details[open] summary::after{content:"–"}
+.faq p{margin:.9rem 0 0;color:var(--texto-suave);font-size:.96rem}
+
+/* ====================== local ====================== */
+.local{display:grid;gap:2rem}
+@media (min-width:880px){.local{grid-template-columns:1fr 1fr;align-items:center}}
+.local__mapa{
+  border-radius:var(--raio-g);overflow:hidden;
+  border:1px solid rgba(255,255,255,.18);
+  min-height:300px;background:#4A3B31;
+}
+.local__mapa iframe{width:100%;height:100%;min-height:300px;border:0;display:block}
+.local__dados{list-style:none;margin:1.5rem 0 0;padding:0;display:grid;gap:1rem}
+.local__dados b{display:block;color:#fff;font-weight:600}
+.local__dados span{color:#CFC2B4;font-size:.95rem}
+.horario{
+  width:100%;margin-top:1.6rem;border-collapse:collapse;
+  font-size:.94rem;text-align:left;
+}
+.horario caption{
+  text-align:left;color:#fff;font-weight:600;padding-bottom:.6rem;
+}
+.horario th,.horario td{
+  padding:.7rem 0;border-top:1px solid rgba(255,255,255,.14);
+  vertical-align:top;
+}
+.horario th{font-weight:400;color:#CFC2B4}
+.horario td{color:#fff;text-align:right}
+.local__fachada{margin:0 0 2rem;border-radius:var(--raio-g);overflow:hidden}
+
+/* ====================== rodape ====================== */
+.rodape{
+  background:var(--marrom-esc);color:#C6B8A8;
+  padding:3rem 0 6.5rem;font-size:.9rem;
+}
+.rodape__grade{display:grid;gap:2rem}
+@media (min-width:760px){.rodape__grade{grid-template-columns:1.3fr 1fr 1fr}}
+.rodape h4{color:#fff;font-size:1rem;margin-bottom:.8rem}
+.rodape a{color:#C6B8A8;text-decoration:none}
+.rodape a:hover{color:var(--dourado-claro)}
+.rodape__lista{list-style:none;margin:0;padding:0;display:grid;gap:.55rem}
+.rodape__lista li{display:flex}
+.rodape__lista a,.rodape__horario{display:flex;align-items:center;gap:.6rem}
+.rodape__lista svg{width:16px;height:16px;fill:currentColor;flex:none;opacity:.75}
+.rodape__horario{color:#9C8E7F}
+
+/* Icones de rede. Circulo de contorno que vira dourado no hover — mesma
+   linguagem das setas do carrossel, pra nao inventar um terceiro botao. */
+.sociais{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.3rem}
+.social{
+  width:46px;height:46px;border-radius:50%;
+  display:grid;place-items:center;color:#E7DCCA;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
+  transition:background .18s,border-color .18s,color .18s,transform .18s;
+}
+.social:hover{background:var(--dourado-claro);border-color:var(--dourado-claro);color:var(--marrom-esc);transform:translateY(-2px)}
+.social:focus-visible{outline:2px solid var(--dourado-claro);outline-offset:3px}
+.social svg{width:21px;height:21px;fill:currentColor}
+.rodape__logo{
+  background:var(--creme);border-radius:10px;padding:.7rem .9rem;
+  display:inline-block;margin-bottom:1rem;
+}
+.rodape__logo img{height:34px;width:auto}
+.rodape__rt{
+  margin-top:2.5rem;padding-top:1.5rem;
+  border-top:1px solid rgba(255,255,255,.12);
+  font-size:.82rem;color:#9C8E7F;
+}
+.rodape__rt b{color:#C6B8A8}
+
+/* Botao flutuante. O padding-bottom grande do rodape existe por causa dele:
+   sem folga ele cobre a ultima linha. */
+.zap{
+  position:fixed;right:16px;bottom:16px;z-index:70;
+  display:flex;align-items:center;gap:.55rem;
+  padding:.8rem 1.25rem;border-radius:999px;
+  background:#25D366;color:#0B3D22;font-weight:700;font-size:.95rem;
+  text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.22);
+}
+.zap svg{width:20px;height:20px;fill:currentColor}
+@media (max-width:430px){.zap span{display:none}.zap{padding:.9rem}}
+
+/* Marcador amarelo do que ainda falta confirmar com a clinica. Nenhum pode
+   sobrar na entrega paga. */
+.marcador{
+  display:inline-block;padding:.05em .45em;border-radius:4px;
+  background:#FFF3CD;color:#7A5A00;font-size:.82em;font-weight:600;
+}
+</style>
+</head>
+<body>
+
+<!-- Sprite de icones. Um <symbol> por desenho, usado quantas vezes precisar
+     com <use>. Custa uma copia do caminho no arquivo em vez de uma por
+     ocorrencia, e nao gera nenhuma requisicao de rede. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-zap" viewBox="0 0 24 24">
+    <path d="M17.5 14.4c-.3-.2-1.7-.9-2-1-.3-.1-.5-.2-.7.1s-.8 1-.9 1.2c-.2.2-.3.2-.6.1-.3-.2-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5 0-.2 0-.4 0-.5 0-.2-.7-1.6-.9-2.2-.2-.5-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5 4.4.7.3 1.2.5 1.7.6.7.2 1.3.2 1.8.1.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3ZM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.6 0-3.2-.4-4.5-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Z"/>
+  </symbol>
+  <symbol id="i-insta" viewBox="0 0 24 24">
+    <path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.42-.36-1.06-.41-2.23-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41 1.27-.06 1.65-.07 4.85-.07Zm0 5.68a4.16 4.16 0 1 0 0 8.32 4.16 4.16 0 0 0 0-8.32Zm0 6.86a2.7 2.7 0 1 1 0-5.4 2.7 2.7 0 0 1 0 5.4Zm5.3-7.02a.97.97 0 1 1-1.94 0 .97.97 0 0 1 1.94 0Z"/>
+  </symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24">
+    <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/>
+  </symbol>
+  <symbol id="i-relogio" viewBox="0 0 24 24">
+    <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm.9-12.8h-1.8v5.5l4.6 2.8.9-1.5-3.7-2.2V7.2Z"/>
+  </symbol>
+</svg>
+
+<!-- ===== topo ===== -->
+<header class="topo">
+  <div class="env topo__linha">
+    <a class="marca" href="#topo" aria-label="Realce Odontologia Integrada — início">
+      <img src="assets/img/logo.webp" width="720" height="202" alt="Realce Odontologia Integrada">
+    </a>
+    <nav class="menu">
+      <a href="#tratamentos">Tratamentos</a>
+      <a href="#clinica">A clínica</a>
+      <a href="#avaliacoes">Avaliações</a>
+      <a href="#convenios">Convênios</a>
+      <a href="#dentista">A dentista</a>
+      <a href="#local">Onde fica</a>
+    </nav>
+    <a class="btn topo__cta" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20consulta." target="_blank" rel="noopener">Agendar</a>
+  </div>
+</header>
+
+<!-- ===== hero ===== -->
+<section class="hero" id="topo">
+  <div class="env hero__grade">
+    <div>
+      <span class="hero__selo"><b>4,9</b> <span class="estrelas" aria-hidden="true">★★★★★</span> em <b>105</b> avaliações no Google</span>
+      <h1>Aparelho ortodôntico com a <em>mesma dentista</em> do início ao fim.</h1>
+      <p class="hero__texto">Realçando o melhor do seu sorriso, em João Monlevade. Ortodontia, clareamento, implantes e clínica geral — sem enrolação, com tratamento objetivo e acompanhamento sempre da mesma profissional.</p>
+      <div class="hero__acoes">
+        <a class="btn" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20consulta." target="_blank" rel="noopener">Agendar pelo WhatsApp</a>
+        <a class="btn btn--linha" href="#tratamentos">Ver tratamentos</a>
+      </div>
+    </div>
+
+    <figure class="moldura" style="margin:0">
+      <img src="assets/img/hero-recepcao.webp" width="820" height="1024"
+           alt="Recepção da Realce Odontologia Integrada, com painel de madeira, logo em dourado e luminária" fetchpriority="high">
+    </figure>
+  </div>
+</section>
+
+<!-- ===== credenciais ===== -->
+<section class="credenciais">
+  <div class="env credenciais__lista">
+    <span class="credenciais__item"><b>Ortodontia</b> e clínica geral</span>
+    <span class="credenciais__item">Atendemos <b>PASA</b> e <b>IPSM</b></span>
+    <span class="credenciais__item">Rua Negrão de Lima, 51 · <b>Alvorada, João Monlevade</b></span>
+    <span class="credenciais__item">Responsável técnica <b>CRO-MG 44763</b></span>
+  </div>
+</section>
+
+<!-- ===== as tres promessas =====
+     Copy literal dela, do post fixado sobre aparelho ortodontico. Nao trocar
+     por texto generico de clinica: sao as tres dores reais de quem usa
+     aparelho, e foi ela quem escreveu. -->
+<section class="secao secao--creme">
+  <div class="env">
+    <div class="cabeca rv">
+      <span class="olho">Como aqui se trabalha</span>
+      <h2>Três coisas que a gente não abre mão</h2>
+    </div>
+    <div class="promessas">
+      <article class="promessa rv">
+        <div class="promessa__marca">I</div>
+        <h3>A mesma dentista, do início ao fim</h3>
+        <p>Quem começa o seu tratamento é quem termina. Você não encontra um profissional diferente a cada retorno, nem precisa explicar seu caso de novo.</p>
+      </article>
+      <article class="promessa rv">
+        <div class="promessa__marca">II</div>
+        <h3>Sem enrolação</h3>
+        <p>Tratamento objetivo e sem demora. Na primeira consulta você entende o que precisa ser feito, em quantas etapas e em quanto tempo.</p>
+      </article>
+      <article class="promessa rv">
+        <div class="promessa__marca">III</div>
+        <h3>Foco em saúde bucal</h3>
+        <p>Antes da estética vem a saúde. Cada plano de tratamento parte do que a sua boca precisa, não de um pacote pronto.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===== tratamentos =====
+     Os cinco primeiros sao a lista oficial do post "Conheca nossos servicos"
+     da propria clinica. Cirurgia veio de avaliacao de paciente no Google;
+     atendimento infantil, do texto dela ("desde criancas ate adultos");
+     harmonizacao, do reel de botox do perfil da clinica. Nenhum foi
+     inventado — a origem de cada um esta no empresa.md. -->
+<section class="secao" id="tratamentos">
+  <div class="env">
+    <div class="cabeca rv">
+      <span class="olho">Tratamentos</span>
+      <h2>O que a gente faz</h2>
+      <p class="chamada">Odontologia integrada: da manutenção do dia a dia ao alinhamento e à estética do sorriso, no mesmo lugar e com a mesma profissional.</p>
+    </div>
+    <div class="tratamentos">
+
+      <article class="tratamento rv">
+        <div class="ico ico--ortodontia" aria-hidden="true"></div>
+        <h3>Ortodontia</h3>
+        <p>Aparelho para alinhar os dentes e corrigir a mordida, de crianças a adultos, com manutenção sempre com a mesma dentista.</p>
+      </article>
+
+      <article class="tratamento rv">
+        <div class="ico ico--clareamento" aria-hidden="true"></div>
+        <h3>Clareamento dental</h3>
+        <p>Clareamento feito depois da avaliação da saúde da gengiva e do esmalte, para devolver a cor natural dos dentes.</p>
+      </article>
+
+      <article class="tratamento rv">
+        <div class="ico ico--implante" aria-hidden="true"></div>
+        <h3>Implantes dentários</h3>
+        <p>Reposição de dente perdido com planejamento prévio e acompanhamento em cada etapa da recuperação.</p>
+      </article>
+
+      <article class="tratamento rv">
+        <div class="ico ico--limpeza" aria-hidden="true"></div>
+        <h3>Limpeza e prevenção</h3>
+        <p>Profilaxia e orientação de higiene para manter a gengiva saudável — a base de qualquer tratamento que dure.</p>
+      </article>
+
+      <article class="tratamento rv">
+        <div class="ico ico--restauracao" aria-hidden="true"></div>
+        <h3>Restaurações estéticas</h3>
+        <p>Restauração de dente danificado ou cariado, com material que acompanha a cor do seu dente.</p>
+      </article>
+
+      <article class="tratamento rv">
+        <div class="ico ico--cirurgia" aria-hidden="true"></div>
+        <h3>Cirurgia oral</h3>
+        <p>Extração de sisos, inclusive inclusos, com planejamento prévio e acompanhamento da recuperação.</p>
+      </article>
+
+      <article class="tratamento rv">
+        <div class="ico ico--infantil" aria-hidden="true"></div>
+        <h3>Atendimento infantil</h3>
+        <p>Acompanhamento do crescimento e da troca dos dentes, num ambiente pensado para a criança se sentir à vontade.</p>
+      </article>
+
+      <article class="tratamento rv">
+        <div class="ico ico--harmonizacao" aria-hidden="true"></div>
+        <h3>Harmonização facial</h3>
+        <p>Aplicação de toxina botulínica, com avaliação individual antes de qualquer procedimento.</p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== a clinica por dentro ===== -->
+<section class="secao secao--creme" id="clinica">
+  <div class="env">
+    <div class="cabeca rv">
+      <span class="olho">A clínica</span>
+      <h2>Por dentro da Realce</h2>
+      <p class="chamada">Clínica nova, com recepção, sala de planejamento e consultórios próprios. Quem tem receio de dentista costuma reparar primeiro no lugar — por isso ele está aqui inteiro, antes de você marcar.</p>
+    </div>
+    <div class="galeria">
+      <figure class="rv">
+        <img src="assets/img/corredor.webp" width="900" height="512" loading="lazy"
+             alt="Recepção da Realce com painel de madeira, logo em dourado e corredor de acesso aos consultórios">
+      </figure>
+      <figure class="rv">
+        <img src="assets/img/recepcao.webp" width="720" height="728" loading="lazy"
+             alt="Balcão da recepção e parede verde com a frase Excelência em odontologia, dedicação em cada sorriso">
+      </figure>
+      <figure class="rv">
+        <img src="assets/img/consultorio-1.webp" width="720" height="734" loading="lazy"
+             alt="Consultório com cadeira odontológica, bancada e frase dourada na parede">
+      </figure>
+      <figure class="rv">
+        <img src="assets/img/consultorio-3.webp" width="720" height="825" loading="lazy"
+             alt="Consultório da Realce com iluminação embutida e detalhe de parede iluminado">
+      </figure>
+      <figure class="rv">
+        <img src="assets/img/consultorio-2.webp" width="720" height="731" loading="lazy"
+             alt="Segundo consultório, com cadeira odontológica, pia e bancada de apoio">
+      </figure>
+      <figure class="rv">
+        <img src="assets/img/sala-planejamento.webp" width="720" height="820" loading="lazy"
+             alt="Sala de atendimento e planejamento, com mesa, cadeiras e painel ripado de madeira">
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ===== avaliacoes do google =====
+     TRIAGEM OBRIGATORIA: so entra avaliacao que cite a Realce, cite a Dra.
+     Fernanda, ou nao cite clinica nenhuma. Tudo que fala em "AME" ou em
+     "Dra. Ana Flavia" e da clinica antiga e de outra profissional — fica de
+     fora. A lista completa, com o motivo de cada corte, esta em empresa.md.
+
+     Tambem ficou de fora a avaliacao da Priscila Machado: elogia a Dra.
+     Fernanda, mas cita preco, e preco e vedado no site pelo CFO ainda que
+     venha da boca do paciente. -->
+<section class="secao secao--sage" id="avaliacoes">
+  <div class="env">
+    <div class="cabeca rv">
+      <span class="olho">Quem já passou por aqui</span>
+      <h2>O que os pacientes escrevem no Google</h2>
+    </div>
+
+    <!-- Os numeros sobem de 0 ate o valor real quando a secao entra na tela,
+         e as estrelas se preenchem junto. O valor final mora no data-alvo e
+         tambem escrito no HTML, entao sem JS a nota aparece pronta. -->
+    <div class="placar rv" data-placar>
+      <div class="placar__nota" data-conta data-alvo="4.9" data-casas="1">4,9</div>
+      <div>
+        <span class="estrelas-med" data-estrelas aria-hidden="true">
+          <span class="vazias">★★★★★</span>
+          <span class="cheias">★★★★★</span>
+        </span>
+        <span class="placar__contagem">Média de <b data-conta data-alvo="105">105</b> avaliações de pacientes no Google</span>
+      </div>
+      <span class="placar__fonte">Fonte: Google · agosto de 2026</span>
+    </div>
+
+    <div class="carrossel rv" data-carrossel>
+      <div class="carrossel__janela">
+        <div class="avaliacoes" data-trilho>
+
+      <article class="aval">
+        <div class="estrelas" aria-hidden="true">★★★★★</div>
+        <blockquote>“Ótimo atendimento e Dra. Fernanda muito simpática.”</blockquote>
+        <div class="aval__quem">
+          <span class="aval__ini" aria-hidden="true">L</span>
+          <div><b>Lincoln</b><span class="fonte">Google · há 4 meses</span></div>
+        </div>
+      </article>
+
+      <article class="aval">
+        <div class="estrelas" aria-hidden="true">★★★★★</div>
+        <blockquote>“Clínica excelente! A começar pela recepção acolhedora e educada da equipe de secretários! Os dentistas são extremamente competentes, cuidadosos e muito tranquilos.”</blockquote>
+        <div class="aval__quem">
+          <span class="aval__ini" aria-hidden="true">NF</span>
+          <div><b>Noadia Maria Fraga</b><span class="fonte">Google · Local Guide</span></div>
+        </div>
+      </article>
+
+      <article class="aval">
+        <div class="estrelas" aria-hidden="true">★★★★★</div>
+        <blockquote>“Tirou meu medo de dentista ao extrair dois sisos inclusos no mesmo dia, sem nenhuma dor ou qualquer contratempo. Já indiquei a umas 8 pessoas que trabalham comigo.”</blockquote>
+        <div class="aval__quem">
+          <span class="aval__ini" aria-hidden="true">AN</span>
+          <div><b>Alice Nardy</b><span class="fonte">Google</span></div>
+        </div>
+      </article>
+
+      <article class="aval">
+        <div class="estrelas" aria-hidden="true">★★★★★</div>
+        <blockquote>“Recebi uma indicação da Dra. Fernanda e adorei. Atendimento impecável tanto dela quanto do Thomás. Sempre fui muito bem recepcionada e os tratamentos que fiz até agora tiveram resultado efetivo.”</blockquote>
+        <div class="aval__quem">
+          <span class="aval__ini" aria-hidden="true">AT</span>
+          <div><b>Ana Paula Passos Teixeira</b><span class="fonte">Google</span></div>
+        </div>
+      </article>
+
+      <article class="aval">
+        <div class="estrelas" aria-hidden="true">★★★★★</div>
+        <blockquote>“Excelente atendimento, ambiente super aconchegante e organizado. O atendimento da Dra. Fernanda foi espetacular!”</blockquote>
+        <div class="aval__quem">
+          <span class="aval__ini" aria-hidden="true">LS</span>
+          <div><b>Luana Silvério</b><span class="fonte">Google</span></div>
+        </div>
+      </article>
+
+      <article class="aval">
+        <div class="estrelas" aria-hidden="true">★★★★★</div>
+        <blockquote>“Recomendo muito a Dra. Fernanda por sua dedicação em fornecer cuidados dentários de alta qualidade, aliados à sua empatia e atenção aos pacientes.”</blockquote>
+        <div class="aval__quem">
+          <span class="aval__ini" aria-hidden="true">PS</span>
+          <div><b>Priscila Soares</b><span class="fonte">Google · Local Guide</span></div>
+        </div>
+      </article>
+
+        </div>
+      </div>
+
+      <div class="carrossel__controles">
+        <button class="seta" type="button" data-anterior aria-label="Depoimento anterior">‹</button>
+        <div class="pontos" data-pontos role="group" aria-label="Escolher depoimento"></div>
+        <button class="seta" type="button" data-proximo aria-label="Próximo depoimento">›</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== convenios =====
+     Nome escrito, nao so logo: "dentista que atende PASA em Joao Monlevade"
+     e busca real numa cidade de mineracao, e hoje nao devolve pagina dela. -->
+<section class="secao secao--escura" id="convenios">
+  <div class="env">
+    <div class="cabeca rv">
+      <span class="olho">Convênios</span>
+      <h2>Atendemos o seu plano odontológico</h2>
+      <p class="chamada">Se você tem plano pela empresa ou pelo serviço público, é possível que já esteja coberto aqui. Na dúvida, chame no WhatsApp que a gente confere para você.</p>
+    </div>
+    <div class="convenios">
+      <div class="convenio rv">
+        <b>PASA</b>
+        <span>Plano odontológico</span>
+      </div>
+      <div class="convenio rv">
+        <b>IPSM</b>
+        <span>Instituto de Previdência dos Servidores Militares de MG</span>
+      </div>
+    </div>
+    <div class="hero__acoes">
+      <a class="btn" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20queria%20saber%20se%20voc%C3%AAs%20atendem%20o%20meu%20plano." target="_blank" rel="noopener">Conferir meu plano</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== a dentista =====
+     Texto adaptado do "Sobre mim" escrito por ela. Uma frase dela ficou de
+     fora de proposito: "garantindo tratamentos mais rapidos e confortaveis".
+     Garantia de resultado e vedada pelo Codigo de Etica Odontologica. -->
+<section class="secao" id="dentista">
+  <div class="env dupla">
+    <figure class="moldura rv rv--esq" style="margin:0">
+      <img src="assets/img/dra-fernanda.webp" width="780" height="976" loading="lazy"
+           alt="Dra. Fernanda Magalhães atendendo em um dos consultórios da Realce">
+    </figure>
+    <div class="rv rv--dir">
+      <span class="olho">Quem atende você</span>
+      <h2>Prazer, Fernanda.</h2>
+      <p class="chamada">Cirurgiã-dentista formada em Odontologia e com especialização em Ortodontia, responsável técnica da Realce Odontologia Integrada, em João Monlevade.</p>
+      <ul class="lista">
+        <li>Especialização em Ortodontia, com cursos de atualização constantes</li>
+        <li>Atende uma ampla gama de casos ortodônticos, de crianças a adultos</li>
+        <li>Atendimento personalizado e humanizado, caso a caso</li>
+        <li>Relacionamento próximo e acolhedor com o paciente</li>
+        <li>CRO-MG 44763 · Responsável técnica da clínica</li>
+      </ul>
+      <div class="hero__acoes">
+        <a class="btn" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20avalia%C3%A7%C3%A3o." target="_blank" rel="noopener">Agendar uma avaliação</a>
+        <a class="btn btn--linha" href="https://www.instagram.com/drafernandamagalhaes/" target="_blank" rel="noopener">Ver o Instagram</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== citacao =====
+     A frase nao foi escrita para o site: ela esta na parede da sala de
+     espera, em letra dourada. Por isso a foto e a citacao aparecem lado a
+     lado, e nao texto por cima de foto. -->
+<section class="secao secao--creme">
+  <div class="env dupla dupla--inverte">
+    <figure class="moldura rv rv--esq" style="margin:0">
+      <img src="assets/img/parede-frase.webp" width="840" height="629" loading="lazy"
+           alt="Parede da sala de espera com a frase Excelência em odontologia, dedicação em cada sorriso, em letras douradas">
+    </figure>
+    <figure class="citacao rv rv--dir" style="margin:0">
+      <blockquote>“Excelência em odontologia, dedicação em cada sorriso.”</blockquote>
+      <figcaption>Na parede da sala de espera da Realce</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ===== duvidas ===== -->
+<section class="secao secao--sage" id="duvidas">
+  <div class="env env--estreito">
+    <div class="cabeca rv">
+      <span class="olho">Dúvidas frequentes</span>
+      <h2>Antes de marcar</h2>
+    </div>
+    <div class="faq">
+      <details class="rv">
+        <summary>Como faço para marcar uma consulta?</summary>
+        <p>Pelo WhatsApp <b>(31) 97215-9568</b>. É o número da clínica, e quem responde é a nossa secretaria, dentro do horário de atendimento.</p>
+      </details>
+      <details class="rv">
+        <summary>Vocês atendem plano odontológico?</summary>
+        <p>Sim. Atendemos <b>PASA</b> e <b>IPSM</b>. Se o seu plano for outro, mande uma mensagem que a gente confere para você.</p>
+      </details>
+      <details class="rv">
+        <summary>Quem faz o meu tratamento?</summary>
+        <p>A Dra. Fernanda Magalhães, do início ao fim. Você não troca de profissional no meio do tratamento nem precisa recontar o seu caso a cada retorno.</p>
+      </details>
+      <details class="rv">
+        <summary>Vocês atendem crianças?</summary>
+        <p>Sim. A Dra. Fernanda atende casos ortodônticos de crianças a adultos, e a clínica acompanha o crescimento e a troca dos dentes desde cedo.</p>
+      </details>
+      <details class="rv">
+        <summary>Na primeira consulta já dá para começar o aparelho?</summary>
+        <p>A primeira consulta é de avaliação: a dentista examina, explica o que precisa ser feito e em quantas etapas. O tratamento é planejado com você a partir daí.</p>
+      </details>
+      <details class="rv">
+        <summary>Onde fica a clínica?</summary>
+        <p>Na <b>Rua Negrão de Lima, 51 — Bairro Alvorada</b>, João Monlevade/MG, CEP 35930-054. O mapa está logo abaixo.</p>
+      </details>
+      <details class="rv">
+        <summary>Qual é o horário de atendimento?</summary>
+        <p>De <b>segunda a sexta-feira</b>, das <b>9h às 12h</b> e das <b>14h às 18h</b>. A clínica fecha para o almoço entre 12h e 14h, e não atende aos sábados e domingos.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ===== onde fica =====
+     A fachada mora aqui, e nao na galeria, de proposito: quem vai pela
+     primeira vez procura a porta, e reconhecer a porta antes de sair de casa
+     tira um atrito real. -->
+<section class="secao secao--escura" id="local">
+  <div class="env">
+    <figure class="local__fachada rv">
+      <img src="assets/img/fachada.webp" width="1080" height="607" loading="lazy"
+           alt="Fachada da Realce Odontologia Integrada, na Rua Negrão de Lima, 51, em João Monlevade">
+    </figure>
+    <div class="local">
+      <div>
+        <span class="olho">Onde fica</span>
+        <h2>Bairro Alvorada, João Monlevade</h2>
+        <ul class="local__dados">
+          <li><b>Endereço</b><span>Rua Negrão de Lima, 51 — Alvorada, João Monlevade/MG, 35930-054</span></li>
+          <li><b>WhatsApp</b><span>(31) 97215-9568</span></li>
+        </ul>
+        <table class="horario">
+          <caption>Horário de atendimento</caption>
+          <tbody>
+            <tr><th scope="row">Segunda a sexta</th><td>9h às 12h<br>14h às 18h</td></tr>
+            <tr><th scope="row">Sábado e domingo</th><td>Fechado</td></tr>
+          </tbody>
+        </table>
+        <div class="hero__acoes">
+          <a class="btn" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20consulta." target="_blank" rel="noopener">Agendar pelo WhatsApp</a>
+          <a class="btn btn--linha" href="https://maps.app.goo.gl/UgbfuSbwrjFDE2vt6" target="_blank" rel="noopener">Como chegar</a>
+        </div>
+      </div>
+      <!-- Mapa por embed publico do Google, sem chave de API e sem custo.
+           Conferir com o olho antes de publicar: pin errado em site de
+           clinica manda paciente pro lugar errado. -->
+      <div class="local__mapa">
+        <iframe
+          src="https://www.google.com/maps?q=Realce+Odontologia+Integrada,+Rua+Negr%C3%A3o+de+Lima,+51,+Jo%C3%A3o+Monlevade+-+MG&ll=-19.8108717,-43.1773633&z=17&output=embed"
+          title="Mapa — Realce Odontologia Integrada, Rua Negrão de Lima, 51, Alvorada, João Monlevade/MG"
+          loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== rodape ===== -->
+<footer class="rodape">
+  <div class="env rodape__grade">
+    <div class="rv">
+      <span class="rodape__logo"><img src="assets/img/logo.webp" width="720" height="202" alt="Realce Odontologia Integrada"></span>
+      <p>Realçando o melhor do seu sorriso.<br>Rua Negrão de Lima, 51 — Alvorada, João Monlevade/MG, 35930-054.</p>
+      <div class="sociais">
+        <a class="social" href="https://wa.me/5531972159568" target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
+          <svg aria-hidden="true"><use href="#i-zap"/></svg>
+        </a>
+        <a class="social" href="https://www.instagram.com/realceodontojm/" target="_blank" rel="noopener" aria-label="Instagram da clínica, @realceodontojm">
+          <svg aria-hidden="true"><use href="#i-insta"/></svg>
+        </a>
+        <a class="social" href="https://maps.app.goo.gl/UgbfuSbwrjFDE2vt6" target="_blank" rel="noopener" aria-label="Como chegar, no Google Maps">
+          <svg aria-hidden="true"><use href="#i-pin"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="rv">
+      <h4>Contato</h4>
+      <ul class="rodape__lista">
+        <li><a href="https://wa.me/5531972159568" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-zap"/></svg>WhatsApp (31) 97215-9568</a></li>
+        <li><a href="https://www.instagram.com/realceodontojm/" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-insta"/></svg>@realceodontojm</a></li>
+        <li><a href="https://www.instagram.com/drafernandamagalhaes/" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-insta"/></svg>@drafernandamagalhaes</a></li>
+        <li><a href="https://maps.app.goo.gl/UgbfuSbwrjFDE2vt6" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-pin"/></svg>Rua Negrão de Lima, 51 — Alvorada</a></li>
+        <li class="rodape__horario"><svg aria-hidden="true"><use href="#i-relogio"/></svg>Seg a sex, 9h–12h e 14h–18h</li>
+      </ul>
+    </div>
+    <div class="rv">
+      <h4>Navegue</h4>
+      <ul class="rodape__lista">
+        <li><a href="#tratamentos">Tratamentos</a></li>
+        <li><a href="#clinica">A clínica</a></li>
+        <li><a href="#avaliacoes">Avaliações</a></li>
+        <li><a href="#convenios">Convênios</a></li>
+        <li><a href="#dentista">A dentista</a></li>
+        <li><a href="#local">Onde fica</a></li>
+      </ul>
+    </div>
+  </div>
+  <!-- Obrigatorio pelo Codigo de Etica Odontologica: nome da responsavel
+       tecnica, o CRO dela e o registro da clinica (EPAO) visiveis.
+       Nao remover. -->
+  <div class="env rodape__rt">
+    <p style="margin:0">Responsável técnica: <b>Dra. Fernanda Magalhães — CRO-MG 44763</b> · <b>EPAO 7232</b>. Realce Odontologia Integrada — João Monlevade/MG.</p>
+    <p style="margin:.4rem 0 0">As informações deste site têm caráter informativo e não substituem a consulta com a cirurgiã-dentista.</p>
+  </div>
+</footer>
+
+<a class="zap" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20consulta." target="_blank" rel="noopener" aria-label="Agendar pelo WhatsApp">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 14.4c-.3-.2-1.7-.9-2-1-.3-.1-.5-.2-.7.1s-.8 1-.9 1.2c-.2.2-.3.2-.6.1-.3-.2-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5 0-.2 0-.4 0-.5 0-.2-.7-1.6-.9-2.2-.2-.5-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5 4.4.7.3 1.2.5 1.7.6.7.2 1.3.2 1.8.1.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3ZM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.6 0-3.2-.4-4.5-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Z"/></svg>
+  <span>Agendar</span>
+</a>
+
+<!-- ====================================================================
+     Animacoes. Sem biblioteca: sao ~90 linhas de JS puro, e nenhuma delas
+     bloqueia a renderizacao (o script fica no fim do body).
+
+     Regra que vale pras tres: se o JS nao rodar, a pagina continua completa
+     e legivel. A classe .js no <html> e o que liga o estado escondido; o
+     placar ja vem com os numeros finais escritos no HTML; e sem JS o
+     carrossel nao existe — os seis depoimentos ficam empilhados.
+     ==================================================================== -->
+<script>
+(function(){
+  "use strict";
+  var mq = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)");
+  var semMovimento = !!(mq && mq.matches);
+  var temObs = "IntersectionObserver" in window;
+
+  /* ---------- 1. aparecer ao rolar ---------- */
+  var alvos = Array.prototype.slice.call(document.querySelectorAll(".rv"));
+  if (!temObs || semMovimento) {
+    alvos.forEach(function(el){ el.classList.add("vis"); });
+  } else {
+    var obs = new IntersectionObserver(function(itens){
+      itens.forEach(function(it){
+        if (!it.isIntersecting) return;
+        var el = it.target;
+        /* Escalonar irmaos: cards da mesma linha entram em cascata em vez de
+           todos de uma vez. Teto de 6 pra ultima foto da galeria nao ficar
+           meio segundo atrasada. */
+        var irmaos = Array.prototype.filter.call(el.parentNode.children, function(n){
+          return n.classList && n.classList.contains("rv");
+        });
+        var i = irmaos.indexOf(el);
+        if (i > 0) el.style.transitionDelay = (Math.min(i, 6) * 70) + "ms";
+        el.classList.add("vis");
+        obs.unobserve(el);
+      });
+    }, { rootMargin: "0px 0px -10% 0px", threshold: 0.1 });
+    alvos.forEach(function(el){ obs.observe(el); });
+  }
+
+  /* ---------- 2. o placar que conta ---------- */
+  function formata(v, casas){
+    return casas ? v.toFixed(casas).replace(".", ",") : String(Math.round(v));
+  }
+  function conta(el){
+    var alvo  = parseFloat(el.getAttribute("data-alvo"));
+    var casas = parseInt(el.getAttribute("data-casas") || "0", 10);
+    if (semMovimento || !window.requestAnimationFrame) { el.textContent = formata(alvo, casas); return; }
+    var t0 = null, dur = 1500;
+    requestAnimationFrame(function passo(t){
+      if (t0 === null) t0 = t;
+      var p = Math.min((t - t0) / dur, 1);
+      var e = 1 - Math.pow(1 - p, 3);          /* easeOutCubic: rapido e desacelera */
+      el.textContent = formata(alvo * e, casas);
+      if (p < 1) requestAnimationFrame(passo);
+    });
+  }
+  var placar = document.querySelector("[data-placar]");
+  if (placar) {
+    var dispara = function(){
+      Array.prototype.forEach.call(placar.querySelectorAll("[data-conta]"), conta);
+      var est = placar.querySelector("[data-estrelas]");
+      if (est) est.classList.add("contou");
+    };
+    if (!temObs) { dispara(); }
+    else {
+      var obsP = new IntersectionObserver(function(is){
+        is.forEach(function(i){ if (i.isIntersecting) { dispara(); obsP.disconnect(); } });
+      }, { threshold: 0.35 });
+      obsP.observe(placar);
+    }
+  }
+
+  /* ---------- 3. carrossel dos depoimentos ---------- */
+  var car = document.querySelector("[data-carrossel]");
+  if (!car) return;
+  var trilho = car.querySelector("[data-trilho]");
+  var slides = Array.prototype.slice.call(trilho.children);
+  if (slides.length < 2) return;
+
+  car.classList.add("carrossel--on");
+  var pontos = car.querySelector("[data-pontos]");
+  var atual = 0, timer = null, INTERVALO = 6500;
+
+  function ir(n){
+    atual = (n + slides.length) % slides.length;
+    trilho.style.transform = "translateX(" + (-atual * 100) + "%)";
+    Array.prototype.forEach.call(pontos.children, function(p, i){
+      p.setAttribute("aria-current", i === atual ? "true" : "false");
+    });
+    /* Esconde os inativos do leitor de tela: senao ele le os seis
+       depoimentos seguidos, como se fossem um paragrafo so. */
+    slides.forEach(function(s, i){ s.setAttribute("aria-hidden", i === atual ? "false" : "true"); });
+  }
+  function parar(){ if (timer) { clearInterval(timer); timer = null; } }
+  function girar(){ parar(); if (!semMovimento) timer = setInterval(function(){ ir(atual + 1); }, INTERVALO); }
+
+  slides.forEach(function(s, i){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "ponto";
+    b.setAttribute("aria-label", "Depoimento " + (i + 1) + " de " + slides.length);
+    b.addEventListener("click", function(){ ir(i); girar(); });
+    pontos.appendChild(b);
+  });
+
+  car.querySelector("[data-anterior]").addEventListener("click", function(){ ir(atual - 1); girar(); });
+  car.querySelector("[data-proximo]").addEventListener("click", function(){ ir(atual + 1); girar(); });
+
+  /* Parar enquanto a pessoa esta lendo ou navegando por teclado. Carrossel
+     que troca no meio da leitura e o motivo de todo mundo detestar
+     carrossel. */
+  car.addEventListener("mouseenter", parar);
+  car.addEventListener("mouseleave", girar);
+  car.addEventListener("focusin", parar);
+  car.addEventListener("focusout", girar);
+  document.addEventListener("visibilitychange", function(){
+    if (document.hidden) parar(); else girar();
+  });
+
+  /* Arrastar com o dedo. */
+  var x0 = null;
+  car.addEventListener("touchstart", function(e){ x0 = e.touches[0].clientX; parar(); }, { passive: true });
+  car.addEventListener("touchend", function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 40) ir(atual + (dx < 0 ? 1 : -1));
+    x0 = null;
+    girar();
+  }, { passive: true });
+
+  ir(0);
+  girar();
+})();
+</script>
+
+<!-- Dados estruturados: e o que faz o Google mostrar endereco, telefone e
+     horario direto na busca. Coordenadas conferidas pelo link do Maps da
+     propria clinica.
+
+     De proposito NAO ha aggregateRating aqui: a nota de 4,9 e das avaliacoes
+     do Google, e marcar avaliacao de terceiro como se fosse do site e contra
+     a diretriz do proprio Google. O numero aparece na pagina, escrito, com a
+     fonte dita — isso e honesto e nao arrisca penalizacao. -->
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"Dentist",
+  "name":"Realce Odontologia Integrada — Dra. Fernanda Magalhães",
+  "url":"https://marcel0gs.github.io/realce-odontologia/",
+  "image":"https://marcel0gs.github.io/realce-odontologia/assets/img/fachada.webp",
+  "logo":"https://marcel0gs.github.io/realce-odontologia/assets/img/og-logo.webp",
+  "description":"Clínica odontológica em João Monlevade/MG. Ortodontia, clareamento, implantes, limpeza, restaurações estéticas e cirurgia oral.",
+  "telephone":"+55 31 97215-9568",
+  "address":{
+    "@type":"PostalAddress",
+    "streetAddress":"Rua Negrão de Lima, 51",
+    "addressLocality":"João Monlevade",
+    "addressRegion":"MG",
+    "postalCode":"35930-054",
+    "addressCountry":"BR"
+  },
+  "geo":{"@type":"GeoCoordinates","latitude":-19.8108717,"longitude":-43.1773633},
+  "hasMap":"https://maps.app.goo.gl/UgbfuSbwrjFDE2vt6",
+  "openingHoursSpecification":[
+    {"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"09:00","closes":"12:00"},
+    {"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"14:00","closes":"18:00"}
+  ],
+  "sameAs":[
+    "https://www.instagram.com/realceodontojm/",
+    "https://www.instagram.com/drafernandamagalhaes/"
+  ],
+  "availableService":[
+    {"@type":"MedicalProcedure","name":"Ortodontia"},
+    {"@type":"MedicalProcedure","name":"Clareamento dental"},
+    {"@type":"MedicalProcedure","name":"Implantes dentários"},
+    {"@type":"MedicalProcedure","name":"Limpeza e prevenção"},
+    {"@type":"MedicalProcedure","name":"Restaurações estéticas"},
+    {"@type":"MedicalProcedure","name":"Cirurgia oral"}
+  ]
+}
+</script>
+
+</body>
+</html>
