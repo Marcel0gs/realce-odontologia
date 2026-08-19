@@ -20,7 +20,11 @@
 <meta property="og:locale" content="pt_BR">
 
 <link rel="icon" href="assets/img/favicon.png" type="image/png">
-<link rel="preload" as="image" href="assets/img/hero-recepcao.webp" fetchpriority="high">
+<!-- O fundo do palco e a primeira coisa que pinta. Duas versoes, uma vertical
+     pro celular: num quadro de ~9:19,5 o corte central de uma foto horizontal
+     come o assunto inteiro. -->
+<link rel="preload" as="image" href="assets/img/palco-fachada-mobile.webp" media="(max-width: 700px)" fetchpriority="high">
+<link rel="preload" as="image" href="assets/img/palco-fachada.webp" media="(min-width: 701px)" fetchpriority="high">
 
 <!-- ====================================================================
      CSS embutido de proposito, nao por preguica. Como arquivo externo ele
@@ -106,11 +110,19 @@ h3{font-size:1.18rem}
       some ao carregar assusta e atrasa a leitura do que mais importa.
    3. prefers-reduced-motion desliga tudo. Nao e enfeite: movimento pode
       causar mal-estar em quem tem sensibilidade vestibular. */
-.rv{transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
-.js .rv{opacity:0;transform:translateY(20px)}
+   4. Duracao e distancia: 1s e 36px. Curto demais (0,7s / 20px) o olho nao
+      chega a ver o movimento — parece que a pagina piscou. O tempo maior com
+      easing que desacelera no fim e o que faz a entrada parecer fluida em vez
+      de apressada. A cascata entre irmaos (120ms) e o que da ritmo: os cards
+      entram um atras do outro, nao todos de uma vez.
+   5. translate3d em vez de translateY: o navegador manda o elemento pra placa
+      de video durante a transicao. No celular e a diferenca entre deslizar e
+      tremer. Ao terminar volta pra transform:none e a camada e liberada. */
+.rv{transition:opacity 1s cubic-bezier(.16,1,.3,1),transform 1s cubic-bezier(.16,1,.3,1)}
+.js .rv{opacity:0;transform:translate3d(0,36px,0)}
 .js .rv.vis{opacity:1;transform:none}
-.js .rv--esq{transform:translateX(-24px)}
-.js .rv--dir{transform:translateX(24px)}
+.js .rv--esq{transform:translate3d(-46px,0,0)}
+.js .rv--dir{transform:translate3d(46px,0,0)}
 .js .rv--esq.vis,.js .rv--dir.vis{transform:none}
 @media (prefers-reduced-motion:reduce){
   .js .rv,.js .rv--esq,.js .rv--dir{opacity:1;transform:none;transition:none}
@@ -118,7 +130,12 @@ h3{font-size:1.18rem}
 
 .env{width:min(1160px,100% - 2.5rem);margin-inline:auto}
 .env--estreito{width:min(800px,100% - 2.5rem);margin-inline:auto}
-.secao{padding:clamp(3.5rem,8vw,6rem) 0}
+/* overflow-x:clip e o que segura os reveals laterais (.rv--esq/.rv--dir).
+   Eles entram deslocados 46px, e a folga lateral da .env e de 20px — sem isso
+   sobra rolagem horizontal no celular ate a animacao terminar. E `clip` e nao
+   `hidden` de proposito: `overflow-x:hidden` com y visivel vira y:auto pela
+   especificacao, o que criaria container de rolagem e quebraria o sticky. */
+.secao{padding:clamp(3.5rem,8vw,6rem) 0;overflow-x:clip}
 .secao--creme{background:var(--creme)}
 .secao--sage{background:var(--sage-claro)}
 .secao--escura{background:var(--marrom);color:#F0E9DF}
@@ -174,33 +191,199 @@ h3{font-size:1.18rem}
   .topo__cta{padding:.55rem 1rem;font-size:.85rem}
 }
 
-/* ====================== hero ====================== */
-.hero{
-  position:relative;
-  background:linear-gradient(165deg,var(--creme) 0%,var(--creme-esc) 55%,var(--areia) 100%);
-  padding:clamp(2.8rem,8vw,5.5rem) 0 clamp(3rem,7vw,5rem);
-  overflow:hidden;
+/* ====================== hero "palco" ======================
+   Componente templates/componentes/hero-abre-com-scroll.html — o mesmo do
+   Rancho Canaa e da GeP Lavanderia. Aqui a historia e "da rua pra dentro":
+   o fundo e a fachada, o card e a recepcao, e rolar abre a clinica.
+
+   Uma variavel so, --p, indo de 0 a 1 conforme o scroll dentro da secao.
+   Todo o resto e interpolacao em CSS a partir dela. O JS nao anima nada —
+   ele so escreve o numero.
+
+   TRES COISAS QUE PARECEM DETALHE E NAO SAO:
+
+   1. A ALTURA DE 200vh VEM DA CLASSE .js NO <html>, marcada pelo script de
+      uma linha no topo do <head>. Se a altura fosse posta por script no fim
+      da secao, num aparelho lento a pagina pintaria com o hero baixo e logo
+      depois ele cresceria, empurrando tudo abaixo — deslocamento de layout
+      que o PageSpeed cobra caro (CLS).
+   2. AS MEDIDAS DO PERCURSO FICAM EM CACHE no script. Ler offsetHeight a
+      cada frame, logo depois de ter escrito --p no frame anterior, obriga o
+      navegador a recalcular layout na hora. E o vaivem que engasga o scroll
+      no celular.
+   3. SEM will-change EM width/height. will-change so ajuda em propriedade
+      que o compositor anima sozinho (transform, opacity); em width/height
+      nao promove camada nenhuma e ainda reserva memoria. Usa-se `contain`.
+
+   ⚠️ A ORDEM IMPORTA: este CSS tem que estar aplicado ANTES do script rodar.
+   O script mede o percurso uma vez e guarda; se rodar antes do CSS aplicar
+   os 200vh, mede errado e a animacao nunca fecha — o card cresce ate o meio
+   e para. Por isso o CSS fica aqui, no <head>, e o script no fim da secao. */
+.palco{
+  --cor-texto:#fff;--cor-nota:#F4E9D8;--cor-nota2:#D6C6AE;
+  --veu:59,46,38;                        /* var(--marrom) em RGB */
+  --p:0;
+  --w0:clamp(240px,25vw,400px);
+  --h0:min(calc(var(--w0) * 1.34),62vh);
+  --saida:200vw;
+  position:relative;height:min(94vh,760px);
+  background:var(--marrom);color:var(--cor-texto);
 }
-.hero::after{
-  content:"";position:absolute;right:-16%;top:-32%;
-  width:min(640px,82vw);aspect-ratio:1;border-radius:50%;
-  background:radial-gradient(circle,rgba(201,169,106,.28),transparent 68%);
+html.js .palco{height:200vh}
+.palco__trilho{position:relative;height:100%;overflow:hidden}
+html.js .palco .palco__trilho{position:sticky;top:0;height:100vh}
+.palco__fundo{
+  position:absolute;inset:0;z-index:0;
+  transform:scale(calc(1.08 * (1 - var(--p)) + 1 * var(--p)));
+  will-change:transform;
+}
+.palco__fundo picture{display:block;width:100%;height:100%}
+.palco__fundo img{width:100%;height:100%;object-fit:cover}
+.palco__fundo::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(var(--veu),.30) 0%,rgba(var(--veu),.72) 100%);
+  opacity:calc(.85 * (1 - var(--p)) + 1 * var(--p));
+}
+.palco__midia{
+  position:absolute;top:50%;left:50%;z-index:2;
+  display:block;overflow:hidden;transform:translate(-50%,-50%);
+  width:calc(var(--w0) * (1 - var(--p)) + 100% * var(--p));
+  height:calc(var(--h0) * (1 - var(--p)) + 100% * var(--p));
+  border-radius:calc(18px * (1 - var(--p)));
+  box-shadow:0 26px 70px rgba(0,0,0,calc(.55 * (1 - var(--p))));
+  contain:layout paint;
+}
+/* O zoom inicial existe porque num card pequeno o plano aberto vira detalhe
+   distante. 1.2 e nao 1.4 (que e o do Rancho): a foto e mais fechada e a logo
+   na parede sai do quadro se apertar mais. O object-position puxa o
+   enquadramento pra cima — o assunto e a logo, nao o piso. */
+.palco__midia img{
+  width:100%;height:100%;object-fit:cover;object-position:50% 42%;
+  transform:scale(calc(1.2 * (1 - var(--p)) + 1 * var(--p)));
+  transform-origin:50% 45%;will-change:transform;
+}
+@media (max-width:700px){.palco__midia img{object-position:50% 38%}}
+.palco__midia::after{
+  content:"";position:absolute;inset:0;
+  background:rgba(var(--veu),.42);opacity:calc(1 - var(--p));
+}
+/* Sombra no rodape do palco. No fim do percurso o veu sobre o card ja chegou
+   a zero — a foto fica limpa, e e justamente onde entram a frase e os botoes.
+   Sobre balcao branco e piso claro o texto perdia contraste. Este degrade
+   entra junto com o bloco final e so na faixa de baixo, entao nao suja a foto
+   nem atrapalha a abertura. */
+.palco__trilho::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:52%;z-index:3;
   pointer-events:none;
+  background:linear-gradient(to top,
+    rgba(var(--veu),.92) 0%, rgba(var(--veu),.6) 42%, rgba(var(--veu),0) 100%);
+  opacity:clamp(0,calc((var(--p) - .62) * 3.2),1);
 }
-.hero__grade{display:grid;gap:clamp(2rem,5vw,3.5rem);align-items:center;position:relative;z-index:1}
-@media (min-width:900px){.hero__grade{grid-template-columns:1.05fr .95fr}}
-.hero h1{color:var(--marrom);margin-bottom:1.1rem}
-.hero h1 em{font-style:italic;color:var(--dourado)}
-.hero__texto{max-width:52ch;color:#54473D;font-size:1.07rem}
+html:not(.js) .palco__trilho::after{opacity:1}
+.palco__titulo{position:absolute;inset:0;z-index:3;margin:0;display:grid;place-items:center;pointer-events:none}
+/* Scrim SO atras do titulo, e nao veu mais forte nas duas fotos.
+   Diferenca em relacao ao Rancho: la o fundo e um por do sol, escuro por
+   natureza, e o titulo branco saltava sozinho. Aqui as duas fotos sao claras
+   — fachada bege ao sol e recepcao de parede branca — e escurecer as duas pra
+   dar contraste ao titulo apagaria justamente o que a secao existe pra
+   mostrar. O degrade radial resolve so onde o problema esta e some junto com
+   o titulo, entao a foto final chega limpa. */
+.palco__titulo::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(ellipse 64% 40% at 50% 50%,
+    rgba(var(--veu),.80) 0%, rgba(var(--veu),.46) 55%, rgba(var(--veu),0) 100%);
+  opacity:calc(1 - var(--p));
+}
+.palco__meia{
+  grid-area:1/1;color:var(--cor-texto);white-space:nowrap;
+  font-family:Georgia,"Times New Roman",serif;font-weight:400;
+  font-size:clamp(2.5rem,8.2vw,5.4rem);letter-spacing:-.02em;line-height:1.1;
+  text-shadow:0 2px 16px rgba(0,0,0,.72),0 1px 3px rgba(0,0,0,.45);will-change:transform;
+}
+/* Brilho varrendo o titulo: e so um degrade recortado no texto, com a posicao
+   do fundo animada. Dentro de @supports porque o preenchimento transparente
+   so pode existir onde o recorte no texto funciona; sem isso o titulo sumiria.
+   O text-shadow continua sendo pintado a partir do contorno da letra, entao a
+   legibilidade sobre a foto nao se perde. A base e o --dourado-claro da marca,
+   apagada o bastante pra faixa branca aparecer. */
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  .palco__meia{
+    /* O degrade REPETE e as duas pontas sao a mesma cor — assim ele ladrilha
+       sem emenda. Com no-repeat e a posicao saindo do alcance sobrava area sem
+       fundo nenhum, e como o preenchimento da letra e transparente, a letra
+       sumia. A varredura anda exatamente um ladrilho (0% → 200% com fundo de
+       200%), entao volta ao ponto de partida sem salto e sem buraco. */
+    background-image:linear-gradient(100deg,
+      #C9A96A 0%, #C9A96A 38%,
+      #FFF6E8 47%, #FFFFFF 50%, #FFF6E8 53%,
+      #C9A96A 62%, #C9A96A 100%);
+    background-size:200% 100%;background-repeat:repeat;
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;color:transparent;
+    animation:brilho-titulo 3.5s ease-in infinite;
+  }
+}
+@keyframes brilho-titulo{
+  from{background-position:200% 0}
+  to{background-position:0 0}
+}
+/* Passado o percurso o titulo ja saiu de cena — parar aqui evita repintura
+   continua no resto da pagina. A classe e ligada pelo script do hero. */
+.palco--fim .palco__meia{animation-play-state:paused}
+/* Sem animacao a base apagada nao faz sentido — o titulo volta a ser branco
+   solido, que e a versao legivel de sempre. */
+@media (prefers-reduced-motion:reduce){
+  .palco__meia{
+    animation:none;background-image:none;
+    -webkit-text-fill-color:#fff;color:#fff;
+  }
+}
+.palco__meia--esq{transform:translate(calc(var(--p) * var(--saida) * -1),-.62em)}
+.palco__meia--dir{transform:translate(calc(var(--p) * var(--saida)),.62em)}
+/* A nota da esquerda carrega o 4,9 de 105 avaliacoes. Ele fica ABAIXO do card,
+   visivel desde o primeiro quadro: e o maior ativo da clinica e nao pode
+   depender de a pessoa rolar ate o fim do percurso pra aparecer. */
+.palco__nota{
+  position:absolute;left:50%;z-index:1;margin:0;
+  top:calc(50% + var(--h0) / 2 + 1.2rem);
+  font-size:.92rem;font-weight:600;color:var(--cor-nota);
+  white-space:nowrap;text-shadow:0 2px 14px rgba(0,0,0,.6);pointer-events:none;
+}
+.palco__nota b{font-weight:700;color:#fff}
+.palco__nota .estrelas{color:#E8C46B;letter-spacing:.06em}
+.palco__nota--esq{transform:translateX(calc(-50% - var(--p) * var(--saida)))}
+.palco__nota--dir{
+  top:calc(50% + var(--h0) / 2 + 3.1rem);font-size:.8rem;color:var(--cor-nota2);
+  transform:translateX(calc(-50% + var(--p) * var(--saida)));
+}
+.palco__final{
+  position:absolute;z-index:4;left:0;right:0;bottom:clamp(2.5rem,9vh,6rem);
+  text-align:center;padding:0 1.25rem;
+  opacity:clamp(0,calc((var(--p) - .72) * 4),1);pointer-events:none;
+}
+.palco--fim .palco__final{pointer-events:auto}
+.palco__final p{margin:0 0 1.1rem;font-weight:600;color:var(--cor-texto);text-shadow:0 2px 18px rgba(0,0,0,.55)}
+.palco__acoes{display:flex;flex-wrap:wrap;gap:.75rem;justify-content:center}
+/* O botao de contorno nasceu pra fundo creme: sobre foto ele precisa da versao
+   clara, mesma logica do .secao--escura .btn--linha. */
+.palco .btn--linha{color:#fff;border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.07)}
+.palco .btn--linha:hover{background:rgba(255,255,255,.18);border-color:#fff;color:#fff}
+/* Sem JS nao ha percurso: o card ja nasce ocupando a tela, o titulo fica
+   parado no meio e o bloco final aparece. A pagina nao depende do efeito. */
+html:not(.js) .palco__midia{width:100%;height:100%;border-radius:0;box-shadow:none}
+html:not(.js) .palco__midia img{transform:none}
+html:not(.js) .palco__midia::after{opacity:.6}
+html:not(.js) .palco__nota{display:none}
+html:not(.js) .palco__final{opacity:1;pointer-events:auto}
+@media (max-width:700px){
+  .palco{--w0:68vw}
+  html.js .palco{height:190vh}
+  .palco__meia{font-size:clamp(2rem,10.5vw,3.4rem)}
+  .palco__nota{font-size:.8rem}
+  .palco__nota--dir{font-size:.74rem}
+}
+
 .hero__acoes{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.8rem}
-.hero__selo{
-  display:inline-flex;align-items:center;flex-wrap:wrap;gap:.4rem;margin-bottom:1.3rem;
-  padding:.42rem .95rem;border-radius:999px;
-  background:rgba(255,255,255,.8);border:1px solid var(--areia);
-  font-size:.79rem;letter-spacing:.04em;color:var(--texto-suave);
-}
-.hero__selo b{color:var(--marrom);font-weight:700}
-.hero__selo .estrelas{color:#D9A441;letter-spacing:.06em}
 
 .moldura{
   position:relative;border-radius:var(--raio-g);overflow:hidden;
@@ -342,7 +525,7 @@ h3{font-size:1.18rem}
 .carrossel__janela{overflow:hidden}
 .carrossel--on .avaliacoes{
   display:flex;gap:0;
-  transition:transform .55s cubic-bezier(.22,1,.36,1);
+  transition:transform .7s cubic-bezier(.22,1,.36,1);
   will-change:transform;
 }
 .carrossel--on .carrossel__janela{max-width:780px;margin-inline:auto}
@@ -351,6 +534,11 @@ h3{font-size:1.18rem}
    nao pula a cada troca. Custa um pouco de espaco em branco e evita o
    solavanco, que e o defeito que mais se nota em carrossel. */
 .carrossel--on .aval{align-self:stretch}
+/* O depoimento que sai apaga enquanto desliza, e a troca vira dissolucao em
+   vez de empurrao. O aria-hidden ja e escrito pelo JS a cada troca — nao
+   precisa de classe nova pra isso. */
+.carrossel--on .aval{opacity:.15;transition:opacity .7s ease}
+.carrossel--on .aval[aria-hidden="false"]{opacity:1}
 
 .carrossel__controles{
   display:none;align-items:center;justify-content:center;gap:1rem;margin-top:1.6rem;
@@ -373,6 +561,66 @@ h3{font-size:1.18rem}
 }
 .ponto[aria-current="true"]{width:26px;background:var(--dourado)}
 .ponto:focus-visible{outline:2px solid var(--dourado);outline-offset:3px}
+
+/* ====================== leque do instagram ======================
+   Mesmo componente do Caldas Coelho, do Rancho Canaa e da GeP. --passo (a
+   distancia entre os cards), --card (largura de referencia) e --dyf (escala
+   do desnivel) governam o leque inteiro: no celular ele so encolhe, nunca
+   vira carrossel.
+
+   Fundo branco de proposito: a secao de cima (a frase da parede) e creme e a
+   de baixo (duvidas) e sage. Branco no meio separa as duas. */
+.insta{text-align:center;overflow:hidden}
+.insta .cabeca{margin-bottom:1rem}
+.insta .chamada{margin-inline:auto;text-align:center}
+.insta__leque{
+  --passo:150px;--card:180px;--dyf:1px;
+  position:relative;z-index:1;height:300px;margin:2.5rem 0 1rem;
+}
+.insta__item{
+  --x:calc(var(--i) * var(--passo));
+  --y:calc(var(--dy) * var(--dyf));
+  display:block;position:absolute;top:50%;left:50%;
+  width:calc(var(--card) * var(--n));aspect-ratio:3/4;overflow:hidden;
+  border-radius:18px;
+  box-shadow:0 12px 30px rgba(59,46,38,.26);
+  transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(var(--r));
+  transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s ease;
+}
+.insta__item:hover,.insta__item:focus-visible{
+  transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y) - 12px)) rotate(0deg) scale(1.06);
+  box-shadow:0 20px 42px rgba(59,46,38,.34);z-index:50 !important;
+}
+.insta__item:focus-visible{outline:2px solid var(--dourado);outline-offset:3px}
+.insta__item img{width:100%;height:100%;object-fit:cover;display:block}
+.insta__cta{margin-top:1.6rem;position:relative;z-index:1}
+.btn__ico{width:18px;height:18px;fill:currentColor;flex:none}
+/* Estado inicial (cards recolhidos no centro): so com JS e sem "reduzir
+   movimento". Sem isso os cards ja nascem na posicao final — a classe e
+   reforco, nao requisito. */
+.insta__item--entrando{
+  transform:translate(-50%,-50%) rotate(0deg) scale(.84);opacity:0;
+  transition:transform .9s cubic-bezier(.16,1,.3,1),opacity .6s ease;
+}
+.insta__leque--visivel .insta__item--entrando{
+  transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(var(--r)) scale(1);
+  opacity:1;
+}
+@media (max-width:760px){
+  /* --passo e a distancia entre os cards. No celular eles se cobrem quase
+     inteiros; um passo um pouco maior deixa ver o conteudo de cada um sem
+     desmanchar o leque. Cuidado: passo grande demais empurra os das pontas
+     pra fora e reaparece rolagem horizontal — conferir a sonda de 390px
+     depois de mexer aqui. */
+  .insta__leque{--passo:70px;--card:138px;--dyf:.5px;height:250px;margin:2rem 0 .5rem}
+  .insta__item{border-radius:13px;box-shadow:0 8px 20px rgba(59,46,38,.24)}
+  /* sem hover em toque: levantar card com o dedo em cima nao acontece */
+  .insta__item:hover{
+    transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(var(--r));
+    box-shadow:0 8px 20px rgba(59,46,38,.24);
+  }
+}
+@media (max-width:400px){.insta__leque{--passo:62px;--card:122px;height:225px}}
 
 /* ====================== convenios ====================== */
 .convenios{display:flex;flex-wrap:wrap;gap:.9rem;margin-top:1.8rem}
@@ -546,25 +794,81 @@ h3{font-size:1.18rem}
   </div>
 </header>
 
-<!-- ===== hero ===== -->
-<section class="hero" id="topo">
-  <div class="env hero__grade">
-    <div>
-      <span class="hero__selo"><b>4,9</b> <span class="estrelas" aria-hidden="true">★★★★★</span> em <b>105</b> avaliações no Google</span>
-      <h1>Aparelho ortodôntico com a <em>mesma dentista</em> do início ao fim.</h1>
-      <p class="hero__texto">Realçando o melhor do seu sorriso, em João Monlevade. Ortodontia, clareamento, implantes e clínica geral — sem enrolação, com tratamento objetivo e acompanhamento sempre da mesma profissional.</p>
-      <div class="hero__acoes">
+<!-- ===== hero "palco" =====
+     Da rua pra dentro: o fundo e a fachada, o card e a recepcao, e rolar abre
+     a clinica ate ocupar a tela. Componente
+     templates/componentes/hero-abre-com-scroll.html.
+
+     O CSS ja esta aplicado (fica no <head>) e o script vem logo depois desta
+     secao — nessa ordem, e nao ao contrario. Ver o aviso no bloco CSS. -->
+<section class="palco" id="topo">
+  <div class="palco__trilho">
+
+    <div class="palco__fundo">
+      <picture>
+        <source media="(max-width: 700px)" srcset="assets/img/palco-fachada-mobile.webp">
+        <img src="assets/img/palco-fachada.webp" alt="Fachada da Realce Odontologia Integrada: letreiro em metal escovado sobre a porta de vidro, na Rua Negrão de Lima" width="1500" height="1102" fetchpriority="high">
+      </picture>
+    </div>
+
+    <picture class="palco__midia">
+      <source media="(max-width: 700px)" srcset="assets/img/palco-recepcao-mobile.webp">
+      <img src="assets/img/palco-recepcao.webp" alt="Recepção da Realce: painel de madeira com a logo em dourado, luminária ondulada e orquídea sobre o balcão" width="1400" height="934">
+    </picture>
+
+    <h1 class="palco__titulo">
+      <span class="palco__meia palco__meia--esq">Ortodontia</span>
+      <span class="palco__meia palco__meia--dir">sem enrolação.</span>
+    </h1>
+
+    <p class="palco__nota palco__nota--esq"><b>4,9</b> <span class="estrelas" aria-hidden="true">★★★★★</span> em <b>105</b> avaliações no Google</p>
+    <p class="palco__nota palco__nota--dir">João Monlevade, MG · Role para entrar ↓</p>
+
+    <div class="palco__final">
+      <p>Clareamento, implantes e clínica geral — com a mesma dentista do início ao fim.</p>
+      <div class="palco__acoes">
         <a class="btn" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20consulta." target="_blank" rel="noopener">Agendar pelo WhatsApp</a>
         <a class="btn btn--linha" href="#tratamentos">Ver tratamentos</a>
       </div>
     </div>
 
-    <figure class="moldura" style="margin:0">
-      <img src="assets/img/hero-recepcao.webp" width="820" height="1024"
-           alt="Recepção da Realce Odontologia Integrada, com painel de madeira, logo em dourado e luminária" fetchpriority="high">
-    </figure>
   </div>
 </section>
+
+<script>
+  /* O percurso do palco. O script nao anima nada: ele so escreve --p, de 0 a 1,
+     e o CSS interpola o resto. As medidas ficam em cache (topo/curso) — ler
+     offsetHeight a cada frame, logo depois de escrever --p no frame anterior,
+     obriga o navegador a recalcular layout na hora, e e esse vaivem que engasga
+     o scroll no celular. Por frame so se le window.scrollY, que nao custa
+     layout. */
+  (function () {
+    var palco = document.querySelector(".palco");
+    if (!palco) return;
+    var topo = 0, curso = 0;
+    function medir() {
+      topo = palco.getBoundingClientRect().top + window.scrollY;
+      curso = palco.offsetHeight - window.innerHeight;
+    }
+    var agendado = false, ultimo = -1;
+    function atualizar() {
+      agendado = false;
+      var p = curso > 0 ? Math.min(1, Math.max(0, (window.scrollY - topo) / curso)) : 0;
+      if (p === ultimo) return;
+      /* Passos menores que 0,002 nao mudam um pixel na tela e so custam
+         repintura — mas 0 e 1 sempre passam, senao o percurso nao fecha. */
+      if (p !== 0 && p !== 1 && Math.abs(p - ultimo) < 0.002) return;
+      ultimo = p;
+      palco.style.setProperty("--p", p.toFixed(4));
+      palco.classList.toggle("palco--fim", p > 0.78);
+    }
+    function agendar() { if (!agendado) { agendado = true; requestAnimationFrame(atualizar); } }
+    window.addEventListener("scroll", agendar, { passive: true });
+    window.addEventListener("resize", function () { medir(); agendar(); });
+    medir();
+    atualizar();
+  })();
+</script>
 
 <!-- ===== credenciais ===== -->
 <section class="credenciais">
@@ -883,6 +1187,48 @@ h3{font-size:1.18rem}
   </div>
 </section>
 
+<!-- ===== leque do instagram =====
+     Cinco publicações reais do perfil dela, em leque. Servem de prova de que
+     o consultório existe e é ativo — e mandam quem gostou pro lugar onde tem
+     mais material do que cabe num site.
+
+     Os cinco arquivos vieram de print do próprio perfil e estão convertidos
+     em site/assets/img/instagram/. Trocar um post é sobrescrever o .webp com
+     o mesmo nome e ajustar o alt — não mexe em CSS nenhum.
+
+     ⚠️ post-5 é o do BOTOX. Fica aqui pelo mesmo motivo do card de
+     harmonização facial: ela anuncia isso no perfil dela. Se a resposta sobre
+     o registro de harmonização orofacial vier negativa, este <a> sai junto
+     com o card — é uma linha. -->
+<section class="secao insta" id="instagram">
+  <div class="env">
+    <div class="cabeca rv">
+      <span class="olho">No Instagram</span>
+      <h2>O dia a dia da clínica, por ela mesma</h2>
+    </div>
+    <p class="chamada rv">
+      São 320 publicações e 1.772 pessoas acompanhando. Por lá a Dra. Fernanda
+      mostra o consultório por dentro, responde as dúvidas que mais chegam e
+      conta como é o atendimento antes de você marcar a primeira consulta.
+    </p>
+
+    <div class="insta__leque" data-leque>
+      <a class="insta__item" style="--i:-2;--dy:18;--r:-4deg;--n:.86;z-index:10" href="https://www.instagram.com/drafernandamagalhaes/" target="_blank" rel="noopener"><img src="assets/img/instagram/post-1.webp" alt="Publicação do Instagram: vídeo com um dente ilustrado falando ao microfone sobre consulta marcada" width="540" height="720" loading="lazy" decoding="async"></a>
+      <a class="insta__item" style="--i:-1;--dy:38;--r:-2deg;--n:.94;z-index:20" href="https://www.instagram.com/drafernandamagalhaes/" target="_blank" rel="noopener"><img src="assets/img/instagram/post-2.webp" alt="Publicação do Instagram: Dra. Fernanda atendendo no consultório, com a legenda “o que passa na minha cabeça quando estou atendendo”" width="540" height="720" loading="lazy" decoding="async"></a>
+      <a class="insta__item" style="--i:0;--dy:4;--r:0deg;--n:1;z-index:40" href="https://www.instagram.com/drafernandamagalhaes/" target="_blank" rel="noopener"><img src="assets/img/instagram/post-3.webp" alt="Publicação do Instagram: apresentação da Dra. Fernanda Magalhães, com a logo da Realce Odontologia Integrada" width="540" height="720" loading="lazy" decoding="async"></a>
+      <a class="insta__item" style="--i:1;--dy:30;--r:2deg;--n:.94;z-index:20" href="https://www.instagram.com/drafernandamagalhaes/" target="_blank" rel="noopener"><img src="assets/img/instagram/post-4.webp" alt="Publicação do Instagram: a equipe em frente à fachada da Realce Odontologia Integrada" width="540" height="720" loading="lazy" decoding="async"></a>
+      <a class="insta__item" style="--i:2;--dy:12;--r:4deg;--n:.86;z-index:10" href="https://www.instagram.com/drafernandamagalhaes/" target="_blank" rel="noopener"><img src="assets/img/instagram/post-5.webp" alt="Publicação do Instagram: aplicação de toxina botulínica, do conteúdo sobre harmonização facial" width="540" height="720" loading="lazy" decoding="async"></a>
+    </div>
+
+    <div class="insta__cta rv">
+      <a class="btn btn--linha" href="https://www.instagram.com/drafernandamagalhaes/" target="_blank" rel="noopener">
+        <svg class="btn__ico" aria-hidden="true"><use href="#i-insta"/></svg>
+        @drafernandamagalhaes
+      </a>
+    </div>
+  </div>
+</section>
+
 <!-- ===== duvidas ===== -->
 <section class="secao secao--sage" id="duvidas">
   <div class="env env--estreito">
@@ -1052,11 +1398,11 @@ h3{font-size:1.18rem}
           return n.classList && n.classList.contains("rv");
         });
         var i = irmaos.indexOf(el);
-        if (i > 0) el.style.transitionDelay = (Math.min(i, 6) * 70) + "ms";
+        if (i > 0) el.style.transitionDelay = (Math.min(i, 6) * 120) + "ms";
         el.classList.add("vis");
         obs.unobserve(el);
       });
-    }, { rootMargin: "0px 0px -10% 0px", threshold: 0.1 });
+    }, { rootMargin: "0px 0px -14% 0px", threshold: 0.1 });
     alvos.forEach(function(el){ obs.observe(el); });
   }
 
@@ -1093,7 +1439,27 @@ h3{font-size:1.18rem}
     }
   }
 
-  /* ---------- 3. carrossel dos depoimentos ---------- */
+  /* ---------- 3. leque do instagram ---------- */
+  /* Os cinco cards saem empilhados no centro e abrem em leque quando a secao
+     entra na tela. Sem JS, sem observador ou com "reduzir movimento" ligado
+     eles ja nascem abertos — a animacao e reforco, nunca requisito. */
+  var leque = document.querySelector("[data-leque]");
+  if (leque && temObs && !semMovimento) {
+    Array.prototype.forEach.call(leque.querySelectorAll(".insta__item"), function(card, i){
+      card.classList.add("insta__item--entrando");
+      card.style.transitionDelay = (i * 110) + "ms";
+    });
+    var obsL = new IntersectionObserver(function(is){
+      is.forEach(function(i){
+        if (!i.isIntersecting) return;
+        leque.classList.add("insta__leque--visivel");
+        obsL.disconnect();
+      });
+    }, { threshold: 0.3 });
+    obsL.observe(leque);
+  }
+
+  /* ---------- 4. carrossel dos depoimentos ---------- */
   var car = document.querySelector("[data-carrossel]");
   if (!car) return;
   var trilho = car.querySelector("[data-trilho]");
@@ -1102,7 +1468,7 @@ h3{font-size:1.18rem}
 
   car.classList.add("carrossel--on");
   var pontos = car.querySelector("[data-pontos]");
-  var atual = 0, timer = null, INTERVALO = 6500;
+  var atual = 0, timer = null, INTERVALO = 5000;
 
   function ir(n){
     atual = (n + slides.length) % slides.length;
@@ -1129,11 +1495,16 @@ h3{font-size:1.18rem}
   car.querySelector("[data-anterior]").addEventListener("click", function(){ ir(atual - 1); girar(); });
   car.querySelector("[data-proximo]").addEventListener("click", function(){ ir(atual + 1); girar(); });
 
-  /* Parar enquanto a pessoa esta lendo ou navegando por teclado. Carrossel
-     que troca no meio da leitura e o motivo de todo mundo detestar
-     carrossel. */
-  car.addEventListener("mouseenter", parar);
-  car.addEventListener("mouseleave", girar);
+  /* Parar enquanto a pessoa esta navegando por teclado ou mirando uma seta.
+     ATENCAO: NAO por o pausar no carrossel inteiro. O carrossel fica no meio
+     da pagina, e quem rola de mouse deixa o cursor parado bem em cima dele —
+     o giro automatico nunca acontecia, e parecia defeito. Pausar so na faixa
+     dos controles resolve sem tirar o "para quando alguem vai interagir". */
+  var controles = car.querySelector(".carrossel__controles");
+  if (controles) {
+    controles.addEventListener("mouseenter", parar);
+    controles.addEventListener("mouseleave", girar);
+  }
   car.addEventListener("focusin", parar);
   car.addEventListener("focusout", girar);
   document.addEventListener("visibilitychange", function(){
