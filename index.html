@@ -15,7 +15,7 @@
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="Realce Odontologia Integrada — João Monlevade/MG">
-<meta property="og:description" content="Ortodontia, clareamento, implantes e clínica geral. Tratamento com a mesma dentista do início ao fim.">
+<meta property="og:description" content="Ortodontia, clareamento, implantes e clínica geral em João Monlevade/MG. Clínica nova, 4,9 no Google em 105 avaliações.">
 <meta property="og:image" content="https://marcel0gs.github.io/realce-odontologia/assets/img/og-logo.webp">
 <meta property="og:locale" content="pt_BR">
 
@@ -119,13 +119,30 @@ h3{font-size:1.18rem}
       de video durante a transicao. No celular e a diferenca entre deslizar e
       tremer. Ao terminar volta pra transform:none e a camada e liberada. */
 .rv{transition:opacity 1s cubic-bezier(.16,1,.3,1),transform 1s cubic-bezier(.16,1,.3,1)}
-.js .rv{opacity:0;transform:translate3d(0,36px,0)}
+/* ELEVAR (padrao) — sobe e aparece. E o que quase tudo usa. */
+.js .rv{opacity:0;transform:translate3d(0,48px,0)}
 .js .rv.vis{opacity:1;transform:none}
-.js .rv--esq{transform:translate3d(-46px,0,0)}
-.js .rv--dir{transform:translate3d(46px,0,0)}
+/* PANORAMA — entra de lado. So nos blocos de foto + texto, onde os dois
+   lados vindo em direcoes opostas fecham o par. Precisa do overflow-x:clip
+   das .secao, senao sobra rolagem horizontal no celular. */
+.js .rv--esq{transform:translate3d(-56px,0,0)}
+.js .rv--dir{transform:translate3d(56px,0,0)}
 .js .rv--esq.vis,.js .rv--dir.vis{transform:none}
+/* SURGIR — cresce de leve enquanto sobe. Fica nos cards em grade, onde a
+   cascata entre irmaos faz a diferenca aparecer: um card atras do outro,
+   cada um "abrindo". Em texto corrido nao se usa: escala em paragrafo borra
+   a letra durante a transicao. */
+.js .rv--surge{transform:translate3d(0,34px,0) scale(.93)}
+.js .rv--surge.vis{transform:none}
 @media (prefers-reduced-motion:reduce){
-  .js .rv,.js .rv--esq,.js .rv--dir{opacity:1;transform:none;transition:none}
+  /* Movimento desligado — mas o "surgir" fica. Opacidade nao causa mal-estar
+     vestibular (o que causa e deslocamento e escala), e sem ela a pagina
+     inteira aparece de uma vez so, que e justamente a sensacao de "as
+     animacoes nao estao funcionando". Quem liga "reduzir movimento" quer
+     menos movimento, nao pagina morta. */
+  .js .rv,.js .rv--esq,.js .rv--dir,.js .rv--surge{
+    transform:none;transition:opacity .6s ease;
+  }
 }
 
 .env{width:min(1160px,100% - 2.5rem);margin-inline:auto}
@@ -258,14 +275,14 @@ html.js .palco .palco__trilho{position:sticky;top:0;height:100vh}
    na parede sai do quadro se apertar mais. O object-position puxa o
    enquadramento pra cima — o assunto e a logo, nao o piso. */
 .palco__midia img{
-  width:100%;height:100%;object-fit:cover;object-position:50% 42%;
+  width:100%;height:100%;object-fit:cover;object-position:22% 45%;
   transform:scale(calc(1.2 * (1 - var(--p)) + 1 * var(--p)));
   transform-origin:50% 45%;will-change:transform;
 }
 @media (max-width:700px){.palco__midia img{object-position:50% 38%}}
 .palco__midia::after{
   content:"";position:absolute;inset:0;
-  background:rgba(var(--veu),.42);opacity:calc(1 - var(--p));
+  background:rgba(var(--veu),.34);opacity:calc(1 - var(--p));
 }
 /* Sombra no rodape do palco. No fim do percurso o veu sobre o card ja chegou
    a zero — a foto fica limpa, e e justamente onde entram a frase e os botoes.
@@ -378,7 +395,11 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 @media (max-width:700px){
   .palco{--w0:68vw}
   html.js .palco{height:190vh}
-  .palco__meia{font-size:clamp(2rem,10.5vw,3.4rem)}
+  /* Titulo mais longo que o do Rancho ("Seu sorriso saudavel," tem 21
+     caracteres contra 10 de "Seu pedaco"), e a linha e nowrap. Em 7.6vw ele
+     cabe inteiro a 360px; acima disso passa da borda e o overflow do trilho
+     corta a palavra. Trocar o texto pede refazer essa conta. */
+  .palco__meia{font-size:clamp(1.6rem,7.6vw,3.2rem)}
   .palco__nota{font-size:.8rem}
   .palco__nota--dir{font-size:.74rem}
 }
@@ -568,8 +589,8 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
    do desnivel) governam o leque inteiro: no celular ele so encolhe, nunca
    vira carrossel.
 
-   Fundo branco de proposito: a secao de cima (a frase da parede) e creme e a
-   de baixo (duvidas) e sage. Branco no meio separa as duas. */
+   Fundo creme: a secao de cima (a dentista) e branca e a de baixo (duvidas)
+   tambem — o creme no meio e o que separa as duas. */
 .insta{text-align:center;overflow:hidden}
 .insta .cabeca{margin-bottom:1rem}
 .insta .chamada{margin-inline:auto;text-align:center}
@@ -644,14 +665,28 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
   width:7px;height:7px;border-radius:50%;background:var(--dourado-claro);
 }
 
-/* ====================== citacao ====================== */
-.citacao blockquote{
-  margin:0;font-family:Georgia,serif;font-style:italic;
-  font-size:clamp(1.4rem,3.6vw,2.1rem);line-height:1.32;color:var(--marrom);
+/* ====================== comodidades ======================
+   Os dados vieram da ficha do Google da clinica, campo por campo. Sao os
+   detalhes que ninguem pergunta por telefone e que decidem a visita de quem
+   usa cadeira de rodas, chega de carro ou so quer saber se paga no cartao. */
+.comodidades{
+  display:grid;gap:1.6rem 2.2rem;margin-top:2.4rem;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
 }
-.citacao figcaption{
-  margin-top:1.1rem;font-size:.78rem;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--dourado);
+.comodidade h3{
+  font-family:Georgia,serif;font-size:1.05rem;color:var(--marrom);
+  padding-bottom:.7rem;margin-bottom:.9rem;
+  border-bottom:1px solid var(--borda);
+}
+.comodidade ul{list-style:none;margin:0;padding:0;display:grid;gap:.5rem}
+.comodidade li{
+  position:relative;padding-left:1.5rem;
+  font-size:.94rem;color:var(--texto-suave);line-height:1.5;
+}
+.comodidade li::before{
+  content:"";position:absolute;left:0;top:.5em;
+  width:8px;height:8px;border-radius:50%;
+  background:var(--sage);border:1px solid var(--sage-esc);
 }
 
 /* ====================== duvidas ====================== */
@@ -681,20 +716,44 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 .local__dados{list-style:none;margin:1.5rem 0 0;padding:0;display:grid;gap:1rem}
 .local__dados b{display:block;color:#fff;font-weight:600}
 .local__dados span{color:#CFC2B4;font-size:.95rem}
+/* Duas colunas, sem linha divisoria: o rotulo do dia em versalete apagado e a
+   hora em branco, alinhada a esquerda numa coluna so. Ler "quando abre" tem
+   que ser uma varredura vertical, e nao um pingue-pongue entre as bordas —
+   por isso a hora nao vai encostada na direita. */
 .horario{
-  width:100%;margin-top:1.6rem;border-collapse:collapse;
-  font-size:.94rem;text-align:left;
+  width:100%;margin-top:1.8rem;border-collapse:collapse;
+  font-size:.95rem;text-align:left;
 }
 .horario caption{
-  text-align:left;color:#fff;font-weight:600;padding-bottom:.6rem;
+  display:flex;align-items:center;gap:.55rem;
+  text-align:left;color:#fff;font-weight:600;padding-bottom:.9rem;
 }
-.horario th,.horario td{
-  padding:.7rem 0;border-top:1px solid rgba(255,255,255,.14);
-  vertical-align:top;
+.horario caption svg{width:17px;height:17px;fill:var(--dourado-claro);flex:none}
+.horario th,.horario td{padding:.5rem 0;vertical-align:baseline}
+.horario th{
+  font-weight:600;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+  color:#A99880;padding-right:1.6rem;white-space:nowrap;
 }
-.horario th{font-weight:400;color:#CFC2B4}
-.horario td{color:#fff;text-align:right}
-.local__fachada{margin:0 0 2rem;border-radius:var(--raio-g);overflow:hidden}
+.horario td{color:#fff;font-variant-numeric:tabular-nums}
+.horario__nota{margin:1rem 0 0;font-size:.88rem;color:#CFC2B4}
+.horario__nota a{color:var(--dourado-claro);text-decoration:underline;text-underline-offset:3px}
+/* No celular as duas colunas nao cabem lado a lado (o rotulo em versalete come
+   140px e a hora pede 230px). Empilhar mantem a mesma leitura sem apertar. */
+@media (max-width:560px){
+  .horario,.horario tbody,.horario tr,.horario th,.horario td{display:block}
+  .horario th{padding:0 0 .15rem}
+  .horario td{padding:0 0 .9rem}
+}
+/* A fachada nova e 4:3. Solta, ela ocupa a tela inteira e empurra endereco e
+   horario pra fora da primeira olhada — que e o que a secao existe pra dar.
+   Recortada em faixa, mostra letreiro e porta, que e o que a pessoa procura
+   quando chega. */
+.local__fachada{
+  margin:0 0 2rem;border-radius:var(--raio-g);overflow:hidden;
+  aspect-ratio:2/1;
+}
+.local__fachada img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+ (max-width:700px){.local__fachada{aspect-ratio:4/3}}
 
 /* ====================== rodape ====================== */
 .rodape{
@@ -817,15 +876,15 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
     </picture>
 
     <h1 class="palco__titulo">
-      <span class="palco__meia palco__meia--esq">Ortodontia</span>
-      <span class="palco__meia palco__meia--dir">sem enrolação.</span>
+      <span class="palco__meia palco__meia--esq">Seu sorriso saudável,</span>
+      <span class="palco__meia palco__meia--dir">com todo o carinho.</span>
     </h1>
 
     <p class="palco__nota palco__nota--esq"><b>4,9</b> <span class="estrelas" aria-hidden="true">★★★★★</span> em <b>105</b> avaliações no Google</p>
     <p class="palco__nota palco__nota--dir">João Monlevade, MG · Role para entrar ↓</p>
 
     <div class="palco__final">
-      <p>Clareamento, implantes e clínica geral — com a mesma dentista do início ao fim.</p>
+      <p>Ortodontia, clareamento, implantes e clínica geral, no Bairro Alvorada.</p>
       <div class="palco__acoes">
         <a class="btn" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20consulta." target="_blank" rel="noopener">Agendar pelo WhatsApp</a>
         <a class="btn btn--linha" href="#tratamentos">Ver tratamentos</a>
@@ -891,17 +950,17 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
       <h2>Três coisas que a gente não abre mão</h2>
     </div>
     <div class="promessas">
-      <article class="promessa rv">
+      <article class="promessa rv rv--surge">
         <div class="promessa__marca">I</div>
         <h3>A mesma dentista, do início ao fim</h3>
         <p>Quem começa o seu tratamento é quem termina. Você não encontra um profissional diferente a cada retorno, nem precisa explicar seu caso de novo.</p>
       </article>
-      <article class="promessa rv">
+      <article class="promessa rv rv--surge">
         <div class="promessa__marca">II</div>
         <h3>Sem enrolação</h3>
         <p>Tratamento objetivo e sem demora. Na primeira consulta você entende o que precisa ser feito, em quantas etapas e em quanto tempo.</p>
       </article>
-      <article class="promessa rv">
+      <article class="promessa rv rv--surge">
         <div class="promessa__marca">III</div>
         <h3>Foco em saúde bucal</h3>
         <p>Antes da estética vem a saúde. Cada plano de tratamento parte do que a sua boca precisa, não de um pacote pronto.</p>
@@ -921,53 +980,53 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
     <div class="cabeca rv">
       <span class="olho">Tratamentos</span>
       <h2>O que a gente faz</h2>
-      <p class="chamada">Odontologia integrada: da manutenção do dia a dia ao alinhamento e à estética do sorriso, no mesmo lugar e com a mesma profissional.</p>
+      <p class="chamada">Odontologia integrada: da manutenção do dia a dia ao alinhamento e à estética do sorriso, no mesmo lugar, sem precisar procurar outra clínica a cada etapa.</p>
     </div>
     <div class="tratamentos">
 
-      <article class="tratamento rv">
+      <article class="tratamento rv rv--surge">
         <div class="ico ico--ortodontia" aria-hidden="true"></div>
         <h3>Ortodontia</h3>
-        <p>Aparelho para alinhar os dentes e corrigir a mordida, de crianças a adultos, com manutenção sempre com a mesma dentista.</p>
+        <p>Aparelho para alinhar os dentes e corrigir a mordida, de crianças a adultos, com manutenção acompanhada de perto.</p>
       </article>
 
-      <article class="tratamento rv">
+      <article class="tratamento rv rv--surge">
         <div class="ico ico--clareamento" aria-hidden="true"></div>
         <h3>Clareamento dental</h3>
         <p>Clareamento feito depois da avaliação da saúde da gengiva e do esmalte, para devolver a cor natural dos dentes.</p>
       </article>
 
-      <article class="tratamento rv">
+      <article class="tratamento rv rv--surge">
         <div class="ico ico--implante" aria-hidden="true"></div>
         <h3>Implantes dentários</h3>
         <p>Reposição de dente perdido com planejamento prévio e acompanhamento em cada etapa da recuperação.</p>
       </article>
 
-      <article class="tratamento rv">
+      <article class="tratamento rv rv--surge">
         <div class="ico ico--limpeza" aria-hidden="true"></div>
         <h3>Limpeza e prevenção</h3>
         <p>Profilaxia e orientação de higiene para manter a gengiva saudável — a base de qualquer tratamento que dure.</p>
       </article>
 
-      <article class="tratamento rv">
+      <article class="tratamento rv rv--surge">
         <div class="ico ico--restauracao" aria-hidden="true"></div>
         <h3>Restaurações estéticas</h3>
         <p>Restauração de dente danificado ou cariado, com material que acompanha a cor do seu dente.</p>
       </article>
 
-      <article class="tratamento rv">
+      <article class="tratamento rv rv--surge">
         <div class="ico ico--cirurgia" aria-hidden="true"></div>
         <h3>Cirurgia oral</h3>
         <p>Extração de sisos, inclusive inclusos, com planejamento prévio e acompanhamento da recuperação.</p>
       </article>
 
-      <article class="tratamento rv">
+      <article class="tratamento rv rv--surge">
         <div class="ico ico--infantil" aria-hidden="true"></div>
         <h3>Atendimento infantil</h3>
         <p>Acompanhamento do crescimento e da troca dos dentes, num ambiente pensado para a criança se sentir à vontade.</p>
       </article>
 
-      <article class="tratamento rv">
+      <article class="tratamento rv rv--surge">
         <div class="ico ico--harmonizacao" aria-hidden="true"></div>
         <h3>Harmonização facial</h3>
         <p>Aplicação de toxina botulínica, com avaliação individual antes de qualquer procedimento.</p>
@@ -983,30 +1042,30 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
     <div class="cabeca rv">
       <span class="olho">A clínica</span>
       <h2>Por dentro da Realce</h2>
-      <p class="chamada">Clínica nova, com recepção, sala de planejamento e consultórios próprios. Quem tem receio de dentista costuma reparar primeiro no lugar — por isso ele está aqui inteiro, antes de você marcar.</p>
+      <p class="chamada">Clínica nova, com recepção ampla, sala de planejamento e consultórios próprios. Ambiente claro, silencioso e bem cuidado, do jeito que dá gosto de esperar a sua vez.</p>
     </div>
     <div class="galeria">
-      <figure class="rv">
+      <figure class="rv rv--surge">
         <img src="assets/img/corredor.webp" width="900" height="512" loading="lazy"
              alt="Recepção da Realce com painel de madeira, logo em dourado e corredor de acesso aos consultórios">
       </figure>
-      <figure class="rv">
+      <figure class="rv rv--surge">
         <img src="assets/img/recepcao.webp" width="720" height="728" loading="lazy"
              alt="Balcão da recepção e parede verde com a frase Excelência em odontologia, dedicação em cada sorriso">
       </figure>
-      <figure class="rv">
+      <figure class="rv rv--surge">
         <img src="assets/img/consultorio-1.webp" width="720" height="734" loading="lazy"
              alt="Consultório com cadeira odontológica, bancada e frase dourada na parede">
       </figure>
-      <figure class="rv">
+      <figure class="rv rv--surge">
         <img src="assets/img/consultorio-3.webp" width="720" height="825" loading="lazy"
              alt="Consultório da Realce com iluminação embutida e detalhe de parede iluminado">
       </figure>
-      <figure class="rv">
+      <figure class="rv rv--surge">
         <img src="assets/img/consultorio-2.webp" width="720" height="731" loading="lazy"
              alt="Segundo consultório, com cadeira odontológica, pia e bancada de apoio">
       </figure>
-      <figure class="rv">
+      <figure class="rv rv--surge">
         <img src="assets/img/sala-planejamento.webp" width="720" height="820" loading="lazy"
              alt="Sala de atendimento e planejamento, com mesa, cadeiras e painel ripado de madeira">
       </figure>
@@ -1126,11 +1185,11 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
       <p class="chamada">Se você tem plano pela empresa ou pelo serviço público, é possível que já esteja coberto aqui. Na dúvida, chame no WhatsApp que a gente confere para você.</p>
     </div>
     <div class="convenios">
-      <div class="convenio rv">
+      <div class="convenio rv rv--surge">
         <b>PASA</b>
         <span>Plano odontológico</span>
       </div>
-      <div class="convenio rv">
+      <div class="convenio rv rv--surge">
         <b>IPSM</b>
         <span>Instituto de Previdência dos Servidores Militares de MG</span>
       </div>
@@ -1170,22 +1229,6 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
   </div>
 </section>
 
-<!-- ===== citacao =====
-     A frase nao foi escrita para o site: ela esta na parede da sala de
-     espera, em letra dourada. Por isso a foto e a citacao aparecem lado a
-     lado, e nao texto por cima de foto. -->
-<section class="secao secao--creme">
-  <div class="env dupla dupla--inverte">
-    <figure class="moldura rv rv--esq" style="margin:0">
-      <img src="assets/img/parede-frase.webp" width="840" height="629" loading="lazy"
-           alt="Parede da sala de espera com a frase Excelência em odontologia, dedicação em cada sorriso, em letras douradas">
-    </figure>
-    <figure class="citacao rv rv--dir" style="margin:0">
-      <blockquote>“Excelência em odontologia, dedicação em cada sorriso.”</blockquote>
-      <figcaption>Na parede da sala de espera da Realce</figcaption>
-    </figure>
-  </div>
-</section>
 
 <!-- ===== leque do instagram =====
      Cinco publicações reais do perfil dela, em leque. Servem de prova de que
@@ -1200,7 +1243,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
      harmonização facial: ela anuncia isso no perfil dela. Se a resposta sobre
      o registro de harmonização orofacial vier negativa, este <a> sai junto
      com o card — é uma linha. -->
-<section class="secao insta" id="instagram">
+<section class="secao secao--creme insta" id="instagram">
   <div class="env">
     <div class="cabeca rv">
       <span class="olho">No Instagram</span>
@@ -1230,7 +1273,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 </section>
 
 <!-- ===== duvidas ===== -->
-<section class="secao secao--sage" id="duvidas">
+<section class="secao" id="duvidas">
   <div class="env env--estreito">
     <div class="cabeca rv">
       <span class="olho">Dúvidas frequentes</span>
@@ -1247,7 +1290,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
       </details>
       <details class="rv">
         <summary>Quem faz o meu tratamento?</summary>
-        <p>A Dra. Fernanda Magalhães, do início ao fim. Você não troca de profissional no meio do tratamento nem precisa recontar o seu caso a cada retorno.</p>
+        <p>A <b>Dra. Fernanda Magalhães</b> é a responsável técnica da clínica e acompanha os casos de ortodontia. O seu histórico fica registrado aqui, então você não precisa recontar tudo a cada retorno.</p>
       </details>
       <details class="rv">
         <summary>Vocês atendem crianças?</summary>
@@ -1273,10 +1316,77 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
      A fachada mora aqui, e nao na galeria, de proposito: quem vai pela
      primeira vez procura a porta, e reconhecer a porta antes de sair de casa
      tira um atrito real. -->
+<!-- ===== comodidades =====
+     Tudo aqui veio da ficha do Google da clínica, campo por campo. É a
+     informação que ninguém liga pra perguntar e que resolve a visita de quem
+     usa cadeira de rodas, chega de carro ou quer saber se paga no cartão.
+     Se algum campo mudar na ficha, muda aqui junto. -->
+<section class="secao secao--creme" id="comodidades">
+  <div class="env">
+    <div class="cabeca rv">
+      <span class="olho">Antes de vir</span>
+      <h2>O que você encontra na clínica</h2>
+    </div>
+
+    <div class="comodidades">
+      <div class="comodidade rv rv--surge">
+        <h3>Acessibilidade</h3>
+        <ul>
+          <li>Entrada acessível para cadeira de rodas</li>
+          <li>Banheiro acessível para cadeira de rodas</li>
+          <li>Estacionamento acessível para cadeira de rodas</li>
+        </ul>
+      </div>
+
+      <div class="comodidade rv rv--surge">
+        <h3>Estacionamento</h3>
+        <ul>
+          <li>Estacionamento no local</li>
+          <li>Estacionamento coberto e gratuito</li>
+        </ul>
+      </div>
+
+      <div class="comodidade rv rv--surge">
+        <h3>Formas de pagamento</h3>
+        <ul>
+          <li>Cartão de crédito</li>
+          <li>Cartão de débito</li>
+          <li>Pagamento por aproximação, no celular</li>
+        </ul>
+      </div>
+
+      <div class="comodidade rv rv--surge">
+        <h3>Agendamento</h3>
+        <ul>
+          <li>É necessário marcar hora</li>
+          <li>Agendamento pelo WhatsApp</li>
+        </ul>
+      </div>
+
+      <div class="comodidade rv rv--surge">
+        <h3>Comodidades</h3>
+        <ul>
+          <li>Banheiro para pacientes</li>
+          <li>Banheiro de gênero neutro</li>
+        </ul>
+      </div>
+
+      <div class="comodidade rv rv--surge">
+        <h3>Acolhimento</h3>
+        <ul>
+          <li>Empresa de empreendedoras</li>
+          <li>Acolhe a comunidade LGBTQ+</li>
+          <li>Espaço seguro para pessoas transgênero</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="secao secao--escura" id="local">
   <div class="env">
     <figure class="local__fachada rv">
-      <img src="assets/img/fachada.webp" width="1080" height="607" loading="lazy"
+      <img src="assets/img/fachada.webp" width="1400" height="1028" loading="lazy"
            alt="Fachada da Realce Odontologia Integrada, na Rua Negrão de Lima, 51, em João Monlevade">
     </figure>
     <div class="local">
@@ -1288,12 +1398,13 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
           <li><b>WhatsApp</b><span>(31) 97215-9568</span></li>
         </ul>
         <table class="horario">
-          <caption>Horário de atendimento</caption>
+          <caption><svg aria-hidden="true"><use href="#i-relogio"/></svg>Horário de atendimento</caption>
           <tbody>
-            <tr><th scope="row">Segunda a sexta</th><td>9h às 12h<br>14h às 18h</td></tr>
+            <tr><th scope="row">Segunda a sexta</th><td>09:00 – 12:00 · 14:00 – 18:00</td></tr>
             <tr><th scope="row">Sábado e domingo</th><td>Fechado</td></tr>
           </tbody>
         </table>
+        <p class="horario__nota">Fora do horário, <a href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20consulta." target="_blank" rel="noopener">chame no WhatsApp</a>.</p>
         <div class="hero__acoes">
           <a class="btn" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20consulta." target="_blank" rel="noopener">Agendar pelo WhatsApp</a>
           <a class="btn btn--linha" href="https://maps.app.goo.gl/UgbfuSbwrjFDE2vt6" target="_blank" rel="noopener">Como chegar</a>
