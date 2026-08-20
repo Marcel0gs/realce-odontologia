@@ -426,84 +426,95 @@ h3{font-size:1.18rem}
    aqui) mas o selo, a nota e a chamada continuavam com a cor da base. Parecia
    erro de cor; era erro de ordem.
 
-   ============ A FOTO DO CELULAR JA FOI TROCADA TRES VEZES ============
+   ========= A FOTO DO CELULAR JA FOI TROCADA QUATRO VEZES =========
 
-   PRIMEIRA TROCA (19/08/2026): a composta borrada virou `fachada-mobile.webp`,
-   foto REAL em RETRATO (1086x1448) fornecida pelo usuario. Resolveu a
-   composicao, mas a propria foto tinha um borrao marrom-escuro (reflexo/sombra
-   do vidro) que o usuario circulou num print e pediu pra trocar.
+   As tres primeiras (19 e 20/08/2026) foram tentativas de espremer uma FOTO
+   HORIZONTAL num quadro de retrato: recorte, composta com degrade, e por fim
+   uma montagem com fundo desfocado. Todas encalharam na mesma parede — foto
+   horizontal nao tem area vazia, entao o texto do hero caia sempre em cima de
+   alguma coisa, e a montagem desfocada deixava o terco de baixo da tela num
+   borrao fosco que o usuario circulou num print e reprovou.
 
-   SEGUNDA TROCA (19/08/2026, mesma data): entrou um recorte 1350x2048 de uma
-   imagem gerada pelo usuario, reduzido pra 820x1244.
+   QUARTA TROCA (20/08/2026), e essa acabou com o problema em vez de contornar:
+   `Gemini_Generated_Image_xi59u9xi59u9xi59.jpg`, 2048x2048, trazida pelo
+   usuario. **Ela tem CALCADA embaixo.** Isso e tudo — a area limpa que faltava
+   nas outras tres. Nao ha mais montagem, nem desfoque, nem dissolucao: e um
+   recorte simples da foto, nitido de cima a baixo, e o texto mora na calcada.
 
-   TERCEIRA TROCA (19/08/2026, junto com o modelo do Belloni): entrou
-   `fachada-topo-mobile.webp`, e ela NAO E UM RECORTE — e uma montagem. Vale
-   entender o problema antes de mexer.
+   **A licao, agora com desfecho:** quando o topo mobile nao fecha, a pergunta
+   certa nunca foi "que gradiente resolve" — e "essa foto tem area vazia?".
+   Foram tres rodadas de CSS pra confirmar isso e uma foto pra resolver.
 
-   ⚠️⚠️ POR QUE UMA MONTAGEM, E NAO UM RECORTE. A foto boa da fachada
-   (`afafdasfase.png`) e HORIZONTAL: 2048x1504. O letreiro ocupa de x=316 a
-   x=1520 — 59% da largura. Pra ele caber inteiro numa tela de celular
-   (390x844, proporcao 0,46) sem `cover` comer as pontas, o quadro precisa ser
-   pelo menos tao estreito quanto a tela:
+   ============ COMO O RECORTE FOI CALCULADO ============
 
-       largura 1204 (o letreiro) / 0,46 = 2600px de altura necessaria
+   O arquivo e `fachada-topo-mobile.webp`, 1280x2290. O comando esta em
+   `CLAUDE.md` do cliente, secao 14c. As tres medidas que mandam:
 
-   A foto tem 1504. Faltam ~1100px de altura, e nenhum recorte inventa isso.
-   Foi essa conta que derrubou as duas tentativas anteriores.
+   1. **LARGURA 1280, e ela vem do letreiro.** Medido na foto com grade: o
+      letreiro (de pontinho a pontinho de "· ODONTOLOGIA INTEGRADA ·") vai de
+      x=311 a x=1524 — 1213px, centro em 917. O recorte de 1280 centrado nesse
+      917 deixa 33px de sobra de cada lado, ou seja **o letreiro ocupa 95% da
+      largura da tela**. Fica colado nas bordas de proposito: foi pedido em
+      20/08/2026 — *"nao tem problema as bordas do titulo da fachada ficar bem
+      proximas, o importante e aparecer a escrita toda"*. Recorte mais largo
+      encolhe o letreiro; mais estreito corta o pontinho.
 
-   O QUE A MONTAGEM FAZ (feita com ffmpeg, canvas 1000x2200, proporcao 0,4545):
-     - fundo: a mesma foto ampliada pra cobrir os 2200px de altura, com
-       desfoque (gblur sigma=26) e escurecida. Vira profundidade de campo — o
-       olho le como continuacao da cena, nao como remendo;
-     - por cima: o recorte nitido `crop=1480:1504:210:0` reduzido pra 1000px de
-       largura, encostado em y=140 (os 140px deixam a barra do topo respirar
-       antes do letreiro);
-     - o recorte nitido tem ALFA EM RAMPA nas duas pontas — sobe nos primeiros
-       90px e desce a zero nos ultimos 325px. E isso que dissolve a emenda: sem
-       a rampa aparece uma linha reta atravessando a tela.
+   2. **210px DE PAREDE ACRESCENTADOS NO TOPO.** Na foto o letreiro comeca em
+      y=146, o que na tela daria 45px do alto — debaixo da barra de 74px. Os
+      210px sao um espelho da propria parede (os 120px de cima, invertidos e
+      esticados), e poem o letreiro entre **105px e 196px** numa tela de 390 de
+      largura. Parede lisa esticada nao tem como denunciar a emenda.
 
-   Resultado na tela de 390x844: `cover` escala pra 390 de largura (fator
-   0,39), o letreiro cai entre 94px e 165px do alto — logo abaixo dos 74px da
-   barra, com folga de 20px — e "ODONTOLOGIA INTEGRADA" fica inteiro logo
-   embaixo. Que era o pedido literal do usuario.
+   3. **32px DE CALCADA ESPELHADA NA BASE**, so pra fechar a conta da altura do
+      item 4 abaixo. Mora debaixo da parte mais forte do veu; nunca aparece.
 
-   ⚠️ AQUI A REGRA E O CONTRARIO DA VERSAO ANTIGA: como o quadro montado e mais
-   ESTREITO que a tela em proporcao, `cover` corta pela ALTURA, nunca pelas
-   laterais. Hero mais alto nao come mais letreiro. Por isso o hero pode ser
-   `100svh` no celular sem risco.
+   4. ⚠️⚠️ **O `176vw` E A TRAVA QUE PROTEGE O LETREIRO.** Com `cover`, quanto
+      mais alto o hero, mais a imagem e ampliada pra cobrir a altura — e mais
+      largura ela perde nas laterais. **Hero alto = letreiro cortado.** O
+      quadro tem proporcao 1280/2290, entao 2290/1280 = 1,789: enquanto o hero
+      for mais BAIXO que 178,9% da largura, `cover` corta pela altura (que aqui
+      so come calcada) e o letreiro nunca perde as pontas. O `176vw` guarda
+      1,6% de folga disso. **Trocou a foto ou mudou a altura: refaz a conta e
+      confere com print a 390px.**
 
-   **Se um dia trocar a foto de novo:** refazer a montagem inteira (fundo
-   desfocado + nitido com rampa de alfa), nao so redimensionar. O comando esta
-   reconstruivel a partir dos numeros acima. */
+   ============ POR QUE O HERO NAO OCUPA MAIS A TELA INTEIRA ============
+
+   Pedido do usuario em 20/08/2026: *"o letreiro que fica na animacao embaixo,
+   coloque ele tambem na tela, entao ele vai ja preencher um pouco da borda
+   embaixo assim que a pessoa entrar no site"*. O `- 4rem` no `min-height` e
+   isso: 64px reservados pra faixa de credenciais rolante aparecer sem
+   rolagem. A faixa tem ~70px (1,5rem de recuo em cima e embaixo + a linha),
+   entao ela entra quase inteira e sobra o resto pra puxar a rolagem.
+
+   ⚠️ `svh`, nao `vh`: no celular o `vh` conta a barra de endereco que ainda
+   vai sumir, e a faixa nasceria fora da tela — que e exatamente o que essa
+   regra existe pra evitar. */
 @media (max-width:700px){
   .hero{
-    /* ⚠️ O `222vw` E A TRAVA QUE PROTEGE O LETREIRO, nao um numero solto.
-       A montagem tem proporcao 0,4545 (1000x2200) e 1/0,4545 = 2,22. Enquanto
-       o hero for MAIS LARGO que essa proporcao, `cover` corta pela altura e o
-       letreiro nunca perde as pontas. Em aparelho 21:9 muito estreito (tipo
-       360x900, proporcao 0,40) o `100svh` passaria dessa conta e o corte
-       viraria lateral — ai sim comendo o "R" e o "E". O `min()` segura: nesses
-       aparelhos o hero para em 222vw e sobra um dedo de faixa de credenciais
-       aparecendo embaixo, que e um problema bem menor.
-       Se a montagem mudar de proporcao, este numero muda junto. */
-    min-height:100vh;
-    min-height:min(100svh,222vw);
-    /* ⚠️ O RECUO DE BAIXO E GRANDE POR CAUSA DO BOTAO FLUTUANTE. Com o hero na
-       tela inteira, a dupla de botoes encosta no rodape da tela — bem onde o
-       `.zap` mora (fixed, right:16 bottom:16, ~49px de bola no celular). Com
-       recuo pequeno o "Ver Especialidades" nasce por baixo dele. Estes ~80px
-       poem a dupla acima da bola com folga. Se o `.zap` mudar de tamanho ou de
-       posicao, refazer a conta aqui. */
-    padding:calc(var(--topo-h) + 1.4rem) 0 clamp(5rem,15vw,6.5rem);
+    min-height:calc(100vh - 3.4rem);
+    min-height:min(calc(100svh - 3.4rem),200vw);
+    /* O recuo de baixo voltou a ser pequeno em 20/08/2026, e o motivo e a
+       faixa embaixo. Enquanto o hero tomava a tela inteira, a dupla de botoes
+       encostava no rodape — bem onde o `.zap` mora (fixed, right:16 bottom:16,
+       ~49px de bola) — e precisava de ~80px pra escapar. Agora quem ocupa o
+       rodape e a faixa de credenciais: a bola flutua sobre ELA, e a dupla de
+       botoes so precisa do respiro normal. */
+    padding:calc(var(--topo-h) + 1.4rem) 0 clamp(1.6rem,5vw,2.2rem);
     background-image:
       /* fio no topo, pela logo branca sobre a parede bege da fachada */
       linear-gradient(180deg,rgba(18,12,8,.62) 0%,rgba(18,12,8,.40) 5%,rgba(18,12,8,.12) 12%,rgba(18,12,8,0) 22%),
       /* o veu do texto sobe DE BAIXO. No celular o texto ocupa a largura toda,
          entao aqui nao cabe a elipse de canto do desktop — mas o principio e o
          mesmo: escuro so onde ha letra, foto limpa no resto.
-         O degrau do meio (.26 em 46%) nao e so estetica: e ele que cobre a
-         faixa onde o recorte nitido dissolve no fundo desfocado da montagem. */
-      linear-gradient(0deg,rgba(26,18,12,.91) 0%,rgba(26,18,12,.78) 18%,rgba(26,18,12,.52) 33%,rgba(26,18,12,.26) 46%,rgba(26,18,12,.06) 60%,rgba(26,18,12,0) 70%),
+         ⚠️ A RAMPA SUBIU DE NOVO EM 20/08/2026, e nao e recaida: com o hero
+         mais baixo (~640px em vez de 844), o mesmo bloco de texto passou a
+         ocupar uma FATIA MAIOR dele — vai de 4% a 48% da altura, contado de
+         baixo. Uma rampa que fechasse em 64% deixaria a primeira linha do h1
+         sem apoio nenhum. **Mexeu no `- 4rem`, refaz esta rampa.**
+         E escurecer aqui nao repete o erro do borrao fosco: agora o que esta
+         debaixo do veu e calcada NITIDA. Escuro sobre foto nitida le como
+         sombra; sobre borrao lia como neblina. */
+      linear-gradient(0deg,rgba(26,18,12,.93) 0%,rgba(26,18,12,.80) 11%,rgba(26,18,12,.58) 22%,rgba(26,18,12,.34) 33%,rgba(26,18,12,.16) 44%,rgba(26,18,12,.05) 54%,rgba(26,18,12,0) 64%),
       url("assets/img/fachada-topo-mobile.webp"),
       linear-gradient(160deg,#5A4638 0%,#3B2E26 45%,#2A2019 100%);
     background-size:cover,cover,cover,cover;
