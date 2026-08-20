@@ -28,7 +28,7 @@
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="Realce Odontologia Integrada — João Monlevade/MG">
-<meta property="og:description" content="Ortodontia, clareamento, implantes e clínica geral em João Monlevade/MG. Clínica nova, 4,9 no Google em 105 avaliações.">
+<meta property="og:description" content="Ortodontia, clareamento, implantes e clínica geral em João Monlevade/MG. 4,9 no Google em 105 avaliações. Atendemos PASA e IPSM.">
 <meta property="og:image" content="https://marcel0gs.github.io/realce-odontologia/assets/img/og-logo.webp">
 <meta property="og:locale" content="pt_BR">
 
@@ -526,10 +526,32 @@ h3{font-size:1.18rem}
      ele, "Agendar avaliacao" com o icone e mais largo que a metade da tela
      nesses aparelhos, e como white-space e nowrap (pra nao quebrar a pilula
      em duas linhas), o texto estouraria a borda em vez de quebrar. */
-  .hero__acoes{margin-top:1.5rem;gap:.5rem;flex-wrap:nowrap}
-  .hero__acoes .btn{flex:1 1 0;justify-content:center;white-space:nowrap}
-  .hero__acoes .btn--peq{padding:.58rem .5rem;font-size:clamp(.72rem,3.6vw,.85rem);gap:.35rem}
-  .hero__acoes .btn--peq .btn__ico{width:14px;height:14px}
+  /* ⚠️⚠️ O `.hero ` NA FRENTE E OBRIGATORIO — sem ele isto quebra OUTRAS TRES
+     SECOES. Bug encontrado e corrigido em 20/08/2026, depois de ja estar no ar.
+
+     A classe `.hero__acoes` nao vive so no hero: ela e reusada como par de
+     botoes em "Convenios", "A dentista" e "Onde fica". Estas regras estavam
+     sem escopo, entao `flex-wrap:nowrap` + `white-space:nowrap` + `flex:1 1 0`
+     caiam nesses tres lugares tambem. Em flexbox, item com `min-width:auto`
+     nao encolhe abaixo do proprio min-content — e com o texto proibido de
+     quebrar, o min-content de "Agendar uma avaliacao" + "Ver o Instagram" lado
+     a lado da **409px**. Numa tela de 390px o `.env` tem 350px, entao a coluna
+     do grid inteira era esticada pra 409px e ARRASTAVA O TEXTO JUNTO: o
+     paragrafo, a lista e a foto da secao "A dentista" saiam cortados na
+     metade da palavra, em todo celular.
+
+     ⚠️ E A SONDA DE ESTOURO NAO PEGAVA ISSO. `body` tem `overflow-x:hidden`,
+     entao o excesso e recortado e o `scrollWidth` continua marcando 390 — o
+     veredito dava "OK" com o texto cortado na tela. **Estouro dentro de um pai
+     com overflow escondido nao aparece em scrollWidth: tem que ser medido com
+     getBoundingClientRect nos elementos.**
+
+     Se algum dia esse par lado a lado for desejado em outra secao, criar uma
+     classe propria pra ela — nao tirar o escopo daqui. */
+  .hero .hero__acoes{margin-top:1.5rem;gap:.5rem;flex-wrap:nowrap}
+  .hero .hero__acoes .btn{flex:1 1 0;justify-content:center;white-space:nowrap}
+  .hero .hero__acoes .btn--peq{padding:.58rem .5rem;font-size:clamp(.72rem,3.6vw,.85rem);gap:.35rem}
+  .hero .hero__acoes .btn--peq .btn__ico{width:14px;height:14px}
 }
 
 .moldura{
@@ -537,6 +559,70 @@ h3{font-size:1.18rem}
   box-shadow:var(--sombra);background:var(--creme-esc);
 }
 .moldura img{width:100%}
+
+/* ============ OS DOIS RETRATOS QUE SE REVEZAM ("Quem atende você") ============
+   Pedido do usuario em 20/08/2026: o card de apresentacao dela do Instagram
+   ("Prazer, Fernanda!") entra PRIMEIRO e, depois de alguns segundos, dissolve
+   sozinho na foto dela atendendo — e fica alternando.
+
+   ⚠️ A PROPORCAO DO QUADRO E A DO CARD (900x1068), nao a da foto antiga.
+   Nao e detalhe: o card tem o nome dela escrito colado no topo da arte, e a
+   folga ate a letra "D" e de ~20px em 1068. Com qualquer quadro mais baixo,
+   `object-fit:cover` corta a altura e come a primeira linha do nome. A foto do
+   consultorio (780x976) e mais estreita e perde 2,6% de cada lado nesse quadro
+   — ali sobra parede, nao tem ninguem na borda. Se trocar uma das duas fotos,
+   conferir de novo QUAL das duas manda na proporcao.
+
+   O `aspect-ratio` no quadro tambem e o que impede salto de layout: as duas
+   fotos sao `lazy` e chegam depois, mas o buraco ja nasce do tamanho certo.
+
+   ⚠️ POR QUE A ANIMACAO NASCE PAUSADA (e so com JS). Sem sincronizar, a
+   animacao comeca junto com a PAGINA — quando a pessoa finalmente rola ate
+   aqui, ja pode estar no meio do ciclo, mostrando a foto do consultorio. O
+   pedido era explicito: comeca no card. Entao o observador solta a animacao no
+   instante em que a secao aparece, e a partir dali o ciclo esta sincronizado
+   com quem esta olhando.
+
+   ISSO NAO E O "REVEAL AO ROLAR" QUE FOI BANIDO deste site. A regra de la e
+   sobre animacao que ESCONDE CONTEUDO ate a rolagem chegar. Aqui nada fica
+   escondido: sem JS, sem observador ou com "reduzir movimento" ligado, o card
+   aparece inteiro e parado. O que o JS faz e so escolher a HORA de comecar. */
+.retrato{aspect-ratio:900/1068}
+.retrato__foto{
+  position:absolute;inset:0;
+  width:100%;height:100%;object-fit:cover;
+  animation:retrato-a 15s ease-in-out infinite;
+}
+/* A segunda nasce invisivel: com JS a animacao a traz, sem JS ela fica
+   quietinha por baixo da primeira e ninguem ve nada errado. */
+.retrato__foto--b{opacity:0;animation-name:retrato-b}
+.js .retrato__foto{animation-play-state:paused}
+.js .retrato--ativo .retrato__foto{animation-play-state:running}
+
+/* 15s de volta: ~6s de card, 1,2s de dissolucao, ~6s de consultorio, 1,2s de
+   volta. O `scale` de 1.025 e o que tira o ar de "slide trocando" — a foto
+   entra respirando e assenta enquanto fica parada. Sutil de proposito: e uma
+   secao de apresentacao, nao um banner. */
+@keyframes retrato-a{
+  0%       {opacity:1;transform:scale(1.025)}
+  40%      {opacity:1;transform:scale(1)}
+  48%, 92% {opacity:0;transform:scale(1)}
+  100%     {opacity:1;transform:scale(1.025)}
+}
+@keyframes retrato-b{
+  0%, 40%  {opacity:0;transform:scale(1.025)}
+  48%      {opacity:1;transform:scale(1.02)}
+  92%      {opacity:1;transform:scale(1)}
+  100%     {opacity:0;transform:scale(1)}
+}
+/* Com movimento reduzido nao ha revezamento nenhum: fica o card, parado. E o
+   mesmo criterio do letreiro de credenciais e do carrossel — desligar o
+   movimento nunca pode custar conteudo, e aqui nao custa (as duas fotos sao a
+   mesma pessoa, e o texto ao lado ja diz tudo o que elas mostram). */
+@media (prefers-reduced-motion:reduce){
+  .retrato__foto{animation:none}
+  .retrato__foto--b{display:none}
+}
 
 /* ====================== faixa de credenciais ======================
    VIRA LETREIRO EM QUALQUER TELA — rola sozinho, em loop, sem parar. Nasceu
@@ -1267,7 +1353,12 @@ h3{font-size:1.18rem}
     <div class="cabeca">
       <span class="olho">A clínica</span>
       <h2>Por dentro da Realce</h2>
-      <p class="chamada">Clínica nova, com recepção ampla, sala de planejamento e consultórios equipados. Ambiente claro, silencioso e bem cuidado, do jeito que dá gosto de esperar a sua vez.</p>
+      <!-- ⚠️ NADA DE "CLÍNICA NOVA" NO SITE. Removido em 20/08/2026 a pedido do
+           usuário, e o motivo vale pra sempre: elogio que depende de data
+           envelhece sozinho. Daqui a dois anos a frase vira mentira sem
+           ninguém ter mexido em nada. Adjetivo que descreve o lugar
+           (acolhedora, clara, silenciosa) continua verdadeiro. -->
+      <p class="chamada">Clínica acolhedora, com recepção ampla, sala de planejamento e consultórios equipados. Ambiente claro, silencioso e bem cuidado, do jeito que dá gosto de esperar a sua vez.</p>
     </div>
     <div class="galeria">
       <figure>
@@ -1431,9 +1522,19 @@ h3{font-size:1.18rem}
      Garantia de resultado e vedada pelo Codigo de Etica Odontologica. -->
 <section class="secao" id="dentista">
   <div class="env dupla">
-    <figure class="moldura" style="margin:0">
-      <img src="assets/img/dra-fernanda.webp" width="780" height="976" loading="lazy" decoding="async"
-           alt="Dra. Fernanda Magalhães atendendo em um dos consultórios da Realce">
+    <!-- Duas fotos no mesmo quadro, revezando (ver o bloco `.retrato` no CSS).
+         A ordem do HTML e a ordem que se ve: o card de apresentacao primeiro.
+
+         SO A PRIMEIRA TEM `alt`. A segunda e a mesma pessoa, no mesmo lugar da
+         pagina, e um leitor de tela leria as duas seguidas como se fossem duas
+         figuras diferentes — sem nenhuma pista de que uma substitui a outra.
+         Descrever a que abre e marcar a outra como decorativa e o que da a
+         leitura mais honesta do que esta acontecendo ali. -->
+    <figure class="moldura retrato" data-retrato style="margin:0">
+      <img class="retrato__foto retrato__foto--a" src="assets/img/dra-fernanda-card.webp" width="900" height="1068" loading="lazy" decoding="async"
+           alt="Dra. Fernanda Magalhães, ortodontista e responsável técnica da Realce Odontologia Integrada">
+      <img class="retrato__foto retrato__foto--b" src="assets/img/dra-fernanda.webp" width="780" height="976" loading="lazy" decoding="async"
+           alt="" aria-hidden="true">
     </figure>
     <div>
       <span class="olho">Quem atende você</span>
@@ -1472,12 +1573,19 @@ h3{font-size:1.18rem}
   <div class="env">
     <div class="cabeca">
       <span class="olho">No Instagram</span>
-      <h2>O dia a dia da clínica, por ela mesma</h2>
+      <!-- ⚠️ "POR ELA MESMA" SAIU, e o texto perdeu o "a Dra. Fernanda mostra"
+           junto — 20/08/2026, informação do usuário: **o perfil tem vídeos de
+           OUTRA dentista gravando conteúdo.** Ou seja, atribuir tudo à Fernanda
+           é afirmação falsa sobre autoria, num site que leva o CRO dela no
+           rodapé. O texto agora fala do que a pessoa VÊ por lá, sem dizer quem
+           produziu. Se um dia se confirmar quem é a outra profissional e ela
+           for da clínica, dá pra voltar a nomear — mas nomeando as duas. -->
+      <h2>O dia a dia da clínica</h2>
     </div>
     <p class="chamada">
-      São 320 publicações e 1.772 pessoas acompanhando. Por lá a Dra. Fernanda
-      mostra o consultório por dentro, responde as dúvidas que mais chegam e
-      conta como é o atendimento antes de você marcar a primeira consulta.
+      São 320 publicações e 1.772 seguidores. Por lá dá pra ver o consultório
+      por dentro, as dúvidas que mais chegam e como é o atendimento antes de
+      marcar a primeira consulta.
     </p>
 
     <div class="insta__leque" data-leque>
@@ -1745,6 +1853,27 @@ h3{font-size:1.18rem}
         is.forEach(function(i){ if (i.isIntersecting) { dispara(); obsP.disconnect(); } });
       }, { threshold: 0.35 });
       obsP.observe(placar);
+    }
+  }
+
+  /* ---------- 1b. os dois retratos que se revezam ---------- */
+  /* A animacao ja esta escrita no CSS e ja esta rodando — o que o `.js` faz e
+     deixar ela PAUSADA ate a secao aparecer. Aqui so soltamos o freio, uma vez
+     so, pra que a volta comece no card de apresentacao com a pessoa olhando.
+     Sem observador (navegador antigo) soltamos na hora: pior sincronizado,
+     mas nunca parado. */
+  var retrato = document.querySelector("[data-retrato]");
+  if (retrato) {
+    if (!temObs || semMovimento) { retrato.classList.add("retrato--ativo"); }
+    else {
+      var obsR = new IntersectionObserver(function(is){
+        is.forEach(function(i){
+          if (!i.isIntersecting) return;
+          retrato.classList.add("retrato--ativo");
+          obsR.disconnect();
+        });
+      }, { threshold: 0.4 });
+      obsR.observe(retrato);
     }
   }
 
