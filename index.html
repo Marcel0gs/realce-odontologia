@@ -30,12 +30,13 @@
      preload — imagem de background so e descoberta depois que o CSS e
      analisado, tarde demais pro LCP. O `media` garante que cada aparelho baixe
      so a sua. -->
-<!-- TESTE (19/08/2026): com o palco ligado no celular tambem (ver o <style>),
-     o fundo real em qualquer largura passou a ser palco-fachada.webp — entao
-     o preload virou incondicional e o de fachada-mobile.webp saiu (imagem
-     sem uso enquanto o teste durar; volta a fazer sentido se o hero mobile
-     voltar a ser estatico). -->
-<link rel="preload" as="image" href="assets/img/palco-fachada.webp" fetchpriority="high">
+<!-- TESTE (19/08/2026, rodada 2): a <picture> do palco voltou a ter <source>
+     mobile (fachada-mobile.webp), entao o preload volta a ser dividido por
+     media, igual era no hero estatico — senão o celular preloadaria a foto
+     ERRADA (a horizontal, que ele nem usa mais) e a imagem real (LCP) ficaria
+     sem preload. -->
+<link rel="preload" as="image" href="assets/img/fachada-mobile.webp" media="(max-width: 700px)" fetchpriority="high">
+<link rel="preload" as="image" href="assets/img/palco-fachada.webp" media="(min-width: 701px)" fetchpriority="high">
 
 <!-- ====================================================================
      CSS embutido de proposito, nao por preguica. Como arquivo externo ele
@@ -261,6 +262,9 @@ html.js .palco .palco__trilho{position:sticky;top:0;height:100vh}
 }
 .palco__fundo picture{display:block;width:100%;height:100%}
 .palco__fundo img{width:100%;height:100%;object-fit:cover}
+/* No celular esse `cover` vira `contain` (ver o @media la embaixo, junto do
+   resto dos ajustes do teste) — motivo detalhado no comentario HTML da
+   propria <picture>. */
 .palco__fundo::after{
   content:"";position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(var(--veu),.30) 0%,rgba(var(--veu),.72) 100%);
@@ -428,9 +432,30 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
    ⚠️ SE A QUEIXA DE "PARECE LENTO" VOLTAR: o conserto documentado e reverter
    pra este mesmo desenho estatico. O commit anterior a este tem o bloco
    inteiro pronto (`git log` / `git show`) — e mais rapido recuperar de la do
-   que reescrever do zero. `fachada-mobile.webp` continua no repo sem uso
-   enquanto o teste durar, exatamente pra essa volta ser so colar o bloco de
-   volta, sem gerar imagem de novo. */
+   que reescrever do zero.
+
+   ============ RODADA 2 DO TESTE, MESMO DIA: LETREIRO CORTADO E ESCURO DEMAIS
+   ============
+
+   Primeiro print do usuario no celular mostrou dois problemas que a rodada 1
+   nao pegou porque so testei com screenshot estatico, nao rolando de
+   verdade:
+
+   1. O letreiro "REALCE ODONTOLOGIA INTEGRADA" aparecia cortado nas duas
+      pontas. Causa: `.palco__fundo` usava so `palco-fachada.webp` (a foto
+      HORIZONTAL do desktop) em `object-fit:cover`. Cobrir um celular em pe
+      (aspecto ~2:1) com uma foto paisagem forca um zoom enorme, e o corte
+      horizontal come as pontas do letreiro. Duas fotos, dois motivos
+      diferentes de existir — a vertical resolve isto igual resolveu no hero
+      estatico. Ver o comentario da propria `<picture>` no HTML pra conta
+      completa de por que `contain` e nao so trocar a foto.
+   2. As duas imagens (fundo e card) liam como escuras demais, e o fundo
+      ESCURECIA ainda mais conforme rolava — o oposto do que devia acontecer
+      numa secao que esta abrindo. Causa: os veus (`.palco__fundo::after` e
+      `.palco__midia::after`) foram calibrados pro desktop, onde a foto e bem
+      exposta e o contraste do titulo pesa mais que a claridade. Os overrides
+      abaixo so afetam o celular — o desktop no ficou como estava, sem
+      queixa. */
 @media (max-width:700px){
   /* ⚠️ LADO A LADO, NAO EMPILHADO — mudou por pedido do usuario depois de ver
      a versao cheia (cada botao numa linha). Os dois dividem a largura igual
@@ -444,6 +469,29 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
   .palco__acoes .btn{flex:1 1 0;justify-content:center;white-space:nowrap}
   .palco__acoes .btn--peq{padding:.58rem .5rem;font-size:clamp(.72rem,3.6vw,.85rem);gap:.35rem}
   .palco__acoes .btn--peq .btn__ico{width:14px;height:14px}
+
+  /* `contain` em vez de `cover`: mostra a foto vertical INTEIRA, sem cortar
+     o letreiro em nenhum aspecto de tela. A folga que sobra em cima/embaixo
+     (tipicamente ~50px de cada lado num celular comum) e preenchida pelo
+     `--marrom` de `.palco` — nao precisa de regra nova pra isso, e so o que
+     ja fica visivel atras de um elemento que nao cobre tudo. */
+  .palco__fundo img{object-fit:contain}
+
+  /* Veu do fundo bem mais claro, e — o pedido especifico do usuario —
+     DECRESCENTE em vez de crescente: a foto fica mais clara conforme abre,
+     nao mais escura. No desktop essa mesma regra continua `.85→1` (cresce);
+     aqui vai de ~.5 pra ~.3. O gradiente em si tambem perde forca (.30/.72
+     no desktop vira .10/.35 aqui) porque quem segura a legibilidade do
+     titulo e o scrim dedicado (`.palco__titulo::before`), que nao mudou —
+     esse veu de fundo e so ambiencia, sobra espaco pra clarear. */
+  .palco__fundo::after{
+    background:linear-gradient(180deg,rgba(var(--veu),.10) 0%,rgba(var(--veu),.35) 100%);
+    opacity:calc(.5 * (1 - var(--p)) + .3 * var(--p));
+  }
+  /* Card mais claro no repouso (era .34 de alpha, base do desktop) — a
+     tendencia (clareia conforme abre, ate sumir em p=1) continua a mesma,
+     so o ponto de partida ficou mais leve. */
+  .palco__midia::after{background:rgba(var(--veu),.16)}
 }
 
 .hero__acoes{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.8rem}
@@ -980,23 +1028,27 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 <section class="palco" id="topo">
   <div class="palco__trilho">
 
-    <!-- ESTE <picture> E SO DO DESKTOP. Abaixo de 700px o CSS o esconde
-         inteiro (`.palco__fundo{display:none}`) e a fachada do celular entra
-         por `url()` no proprio `.palco__trilho` — sao DUAS FOTOS DIFERENTES,
-         nao dois cortes da mesma:
+    <!-- ⚠️ VOLTOU A TER <source> MOBILE (19/08/2026, teste do palco animado
+         no celular). Sao DUAS FOTOS DIFERENTES, nao dois cortes da mesma:
 
            desktop → palco-fachada.webp     horizontal, retocada por IA
-           celular → fachada-mobile.webp    vertical, foto real
+           celular → fachada-mobile.webp    vertical, mesma foto do hero
+                                             estatico anterior (ver o
+                                             comentario grande no <style>)
 
-         Nao ha mais `<source media="(max-width:700px)">` aqui de proposito.
-         Ja houve, apontando pra uma fachada composta (foto nitida colada sobre
-         uma copia borrada dela mesma) que existia so pra caber num quadro de
-         retrato. Ela saiu em 19/08/2026: com a foto vertical de verdade o
-         problema que a composicao resolvia deixou de existir. Manter um
-         <source> mobile aqui hoje so faria o celular baixar uma foto que ele
-         nunca mostra. -->
+         POR QUE PRECISA DA FOTO VERTICAL AQUI TAMBEM, E NAO SO NO HERO
+         ESTATICO: `.palco__fundo` cobre 100dvh inteiro, e um celular em pe
+         tem aspecto MAIS alto/estreito do que o quadro de 600px que o hero
+         estatico usava. Testado: mesmo a foto vertical, em `object-fit:cover`
+         numa tela de 390x800 (aspecto 2.05), teria que cortar ~106px de cada
+         lado pra cobrir a altura — MAIS que os 42px de folga ate a letra mais
+         proxima do letreiro. Por isso o `object-fit` vira `contain` abaixo de
+         700px (ver `.palco__fundo img` no <style>): mostra a foto inteira,
+         sem cortar nada, com uma faixa da cor de fundo (`--marrom`) sobrando
+         em cima/embaixo quando a tela for mais alta que a foto. -->
     <div class="palco__fundo">
       <picture>
+        <source media="(max-width:700px)" srcset="assets/img/fachada-mobile.webp">
         <img src="assets/img/palco-fachada.webp" alt="Fachada da Realce Odontologia Integrada: letreiro em metal escovado sobre a porta de vidro, na Rua Negrão de Lima" width="1500" height="1102" fetchpriority="high">
       </picture>
     </div>
