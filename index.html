@@ -3,9 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- Marca que ha JS ANTES do CSS pintar. Todo o estado "escondido" das
-     animacoes depende desta classe: sem ela — JS desligado, script com erro,
-     leitor antigo — a pagina aparece inteira, sem depender de nada. -->
+<!-- Marca que ha JS ANTES do CSS pintar. Depois que os reveals sairam
+     (19/08/2026) restaram dois usos, e os dois continuam precisando disso
+     aqui, no topo do <head>: a altura de 200vh do palco — se fosse posta por
+     script depois, a pagina pintaria com o hero baixo e ele cresceria em
+     seguida, empurrando tudo (CLS) — e o preenchimento das estrelas do placar.
+     Sem a classe (JS desligado, script com erro, leitor antigo) a pagina
+     aparece inteira e legivel, sem depender de nada. -->
 <script>document.documentElement.className+=" js";</script>
 
 <title>Realce Odontologia Integrada — dentista e ortodontista em João Monlevade/MG</title>
@@ -20,10 +24,13 @@
 <meta property="og:locale" content="pt_BR">
 
 <link rel="icon" href="assets/img/favicon.png" type="image/png">
-<!-- O fundo do palco e a primeira coisa que pinta. Duas versoes, uma vertical
-     pro celular: num quadro de ~9:19,5 o corte central de uma foto horizontal
-     come o assunto inteiro. -->
-<link rel="preload" as="image" href="assets/img/palco-fachada-mobile.webp" media="(max-width: 700px)" fetchpriority="high">
+<!-- A fachada e o LCP nas duas larguras, e sao DUAS FOTOS DIFERENTES: no
+     desktop a horizontal retocada, que o palco usa como fundo do percurso; no
+     celular a vertical real, que entra por url() no CSS. As duas precisam de
+     preload — imagem de background so e descoberta depois que o CSS e
+     analisado, tarde demais pro LCP. O `media` garante que cada aparelho baixe
+     so a sua. -->
+<link rel="preload" as="image" href="assets/img/fachada-mobile.webp" media="(max-width: 700px)" fetchpriority="high">
 <link rel="preload" as="image" href="assets/img/palco-fachada.webp" media="(min-width: 701px)" fetchpriority="high">
 
 <!-- ====================================================================
@@ -99,59 +106,47 @@ h3{font-size:1.18rem}
 /* Topo sticky sem folga entrega toda secao com o titulo por baixo da barra. */
 [id]{scroll-margin-top:88px}
 
-/* ====================== aparecer ao rolar ======================
-   Tres cuidados que fazem essa animacao nao virar defeito:
+/* ============ NAO HA "APARECER AO ROLAR" NESTE SITE ============
+   ⚠️ REMOVIDO EM 19/08/2026 A PEDIDO DO USUARIO. Nao reintroduzir sem ele
+   pedir com essas palavras.
 
-   1. O estado escondido so vale quando existe JS (a classe .js e posta pelo
-      proprio script, na primeira linha do <head>). Sem JS, sem observador ou
-      com erro no script, a pagina aparece inteira e legivel. Animacao que
-      esconde conteudo em CSS puro e um site em branco esperando por nada.
-   2. Nada acima da dobra usa .rv — o hero aparece de imediato. Conteudo que
-      some ao carregar assusta e atrasa a leitura do que mais importa.
-   3. prefers-reduced-motion desliga tudo. Nao e enfeite: movimento pode
-      causar mal-estar em quem tem sensibilidade vestibular. */
-   4. Duracao e distancia: 1s e 36px. Curto demais (0,7s / 20px) o olho nao
-      chega a ver o movimento — parece que a pagina piscou. O tempo maior com
-      easing que desacelera no fim e o que faz a entrada parecer fluida em vez
-      de apressada. A cascata entre irmaos (120ms) e o que da ritmo: os cards
-      entram um atras do outro, nao todos de uma vez.
-   5. translate3d em vez de translateY: o navegador manda o elemento pra placa
-      de video durante a transicao. No celular e a diferenca entre deslizar e
-      tremer. Ao terminar volta pra transform:none e a camada e liberada. */
-.rv{transition:opacity 1s cubic-bezier(.16,1,.3,1),transform 1s cubic-bezier(.16,1,.3,1)}
-/* ELEVAR (padrao) — sobe e aparece. E o que quase tudo usa. */
-.js .rv{opacity:0;transform:translate3d(0,48px,0)}
-.js .rv.vis{opacity:1;transform:none}
-/* PANORAMA — entra de lado. So nos blocos de foto + texto, onde os dois
-   lados vindo em direcoes opostas fecham o par. Precisa do overflow-x:clip
-   das .secao, senao sobra rolagem horizontal no celular. */
-.js .rv--esq{transform:translate3d(-56px,0,0)}
-.js .rv--dir{transform:translate3d(56px,0,0)}
-.js .rv--esq.vis,.js .rv--dir.vis{transform:none}
-/* SURGIR — cresce de leve enquanto sobe. Fica nos cards em grade, onde a
-   cascata entre irmaos faz a diferenca aparecer: um card atras do outro,
-   cada um "abrindo". Em texto corrido nao se usa: escala em paragrafo borra
-   a letra durante a transicao. */
-.js .rv--surge{transform:translate3d(0,34px,0) scale(.93)}
-.js .rv--surge.vis{transform:none}
-@media (prefers-reduced-motion:reduce){
-  /* Movimento desligado — mas o "surgir" fica. Opacidade nao causa mal-estar
-     vestibular (o que causa e deslocamento e escala), e sem ela a pagina
-     inteira aparece de uma vez so, que e justamente a sensacao de "as
-     animacoes nao estao funcionando". Quem liga "reduzir movimento" quer
-     menos movimento, nao pagina morta. */
-  .js .rv,.js .rv--esq,.js .rv--dir,.js .rv--surge{
-    transform:none;transition:opacity .6s ease;
-  }
-}
+   Existiu um sistema de reveal (.rv / .rv--esq / .rv--dir / .rv--surge) com
+   IntersectionObserver: o conteudo nascia em opacity:0 e subia ao entrar na
+   tela. Passou por tres rodadas de calibragem — 0,7s, depois 1s, depois 0,5s;
+   com cascata entre irmaos, depois sem; distancia de 20px ate 48px e de volta
+   pra 22px. **Nenhuma delas resolveu, porque o problema nao era o ajuste.**
+
+   O veredito do usuario, que encerra o assunto:
+     "isso esta dando a impressao de que o site esta demorando a carregar
+      no celular"
+
+   E ele esta certo, e o motivo e estrutural: num celular a rolagem e curta e
+   o dedo anda rapido, entao o conteudo esta sempre entrando — a pagina nunca
+   parece pronta, parece que ainda esta chegando. Num site de clinica, onde a
+   pessoa quer achar endereco e horario, essa hesitacao custa. Reveal e efeito
+   de site institucional que se le devagar no desktop.
+
+   O QUE FICOU (as duas nao escondem conteudo nenhum, e por isso ficaram):
+     - o placar que conta ate 4,9 / 105 — os numeros ja estao escritos no HTML
+       e sempre visiveis; a contagem so anima o valor
+     - o carrossel dos depoimentos, que gira sozinho a cada 5s
+
+   O QUE SAIU JUNTO: a entrada em leque dos cards do Instagram. Era o mesmo
+   defeito com outro nome — cinco cards invisiveis esperando a rolagem. Hoje
+   eles ja nascem abertos.
+
+   Consequencia pratica: a classe .js no <html> agora serve so ao hero. Se um
+   dia o hero virar estatico tambem, ela pode sair inteira. */
 
 .env{width:min(1160px,100% - 2.5rem);margin-inline:auto}
 .env--estreito{width:min(800px,100% - 2.5rem);margin-inline:auto}
-/* overflow-x:clip e o que segura os reveals laterais (.rv--esq/.rv--dir).
-   Eles entram deslocados 46px, e a folga lateral da .env e de 20px — sem isso
-   sobra rolagem horizontal no celular ate a animacao terminar. E `clip` e nao
-   `hidden` de proposito: `overflow-x:hidden` com y visivel vira y:auto pela
-   especificacao, o que criaria container de rolagem e quebraria o sticky. */
+/* O overflow-x:clip nasceu pra segurar os reveals laterais, que nao existem
+   mais. FICA MESMO ASSIM, por dois motivos que continuam valendo: os cards das
+   pontas do leque do Instagram passam da .env por posicionamento, e o carrossel
+   guarda os slides inativos a direita. Tirar isso traz rolagem horizontal de
+   volta no celular. E `clip` e nao `hidden` de proposito: `overflow-x:hidden`
+   com y visivel vira y:auto pela especificacao, o que criaria container de
+   rolagem e quebraria o sticky do topo. */
 .secao{padding:clamp(3.5rem,8vw,6rem) 0;overflow-x:clip}
 .secao--creme{background:var(--creme)}
 .secao--sage{background:var(--sage-claro)}
@@ -181,6 +176,12 @@ h3{font-size:1.18rem}
 .btn--linha:hover{background:var(--creme-esc);border-color:var(--dourado);color:var(--marrom)}
 .secao--escura .btn--linha{color:#fff;border-color:rgba(255,255,255,.35)}
 .secao--escura .btn--linha:hover{background:rgba(255,255,255,.1);border-color:#fff}
+/* Menor que o .btn padrao — so pro par do hero (Agendar avaliacao / Ver
+   Especialidades), a pedido do usuario. Nao mexe no .btn base porque ele e
+   usado em mais sete lugares (topo, footer, "Como chegar" etc.) que ninguem
+   pediu pra encolher. */
+.btn--peq{padding:.68rem 1.3rem;font-size:.92rem;gap:.45rem}
+.btn--peq .btn__ico{width:16px;height:16px}
 
 /* ====================== topo ======================
    O fundo do topo e exatamente o creme do arquivo da logo, pra que o
@@ -273,11 +274,18 @@ html.js .palco .palco__trilho{position:sticky;top:0;height:100vh}
 /* O zoom inicial existe porque num card pequeno o plano aberto vira detalhe
    distante. 1.2 e nao 1.4 (que e o do Rancho): a foto e mais fechada e a logo
    na parede sai do quadro se apertar mais. O object-position puxa o
-   enquadramento pra cima — o assunto e a logo, nao o piso. */
+   enquadramento pra cima — o assunto e a logo, nao o piso.
+   Foto trocada em 19/08/2026 (segunda vez) — a nova (watermarked_img_...,
+   fornecida pelo usuario) e RETRATO (912x1170), enquanto a antiga era
+   paisagem. A logo nesta fica centrada em ~42% da largura e ~30% da altura;
+   42%/30% substitui o antigo 22%/45%. Card fechado (p=0, aspect 1.34)
+   praticamente nao corta a foto — so ~1.5% de cada lado. Aberto (p=1, aspect
+   de viewport tipico ~0.56-0.63) o corte e vertical e sobra a faixa
+   logo+flor+balcao, exatamente o que o object-position:30% garante. */
 .palco__midia img{
-  width:100%;height:100%;object-fit:cover;object-position:22% 45%;
+  width:100%;height:100%;object-fit:cover;object-position:42% 30%;
   transform:scale(calc(1.2 * (1 - var(--p)) + 1 * var(--p)));
-  transform-origin:50% 45%;will-change:transform;
+  transform-origin:50% 30%;will-change:transform;
 }
 @media (max-width:700px){.palco__midia img{object-position:50% 38%}}
 .palco__midia::after{
@@ -392,16 +400,143 @@ html:not(.js) .palco__midia img{transform:none}
 html:not(.js) .palco__midia::after{opacity:.6}
 html:not(.js) .palco__nota{display:none}
 html:not(.js) .palco__final{opacity:1;pointer-events:auto}
+/* ============ NO CELULAR O PALCO NAO EXISTE ============
+   Ate 700px o hero e estatico: fachada de fundo, degrade por cima, texto
+   embaixo — o mesmo desenho do Caldas Coelho, e IDENTICO ao da variante B
+   (`site-topo-classico/`). A diferenca entre as duas variantes e so o
+   desktop; no celular as duas mostram exatamente isto.
+
+   POR QUE O PERCURSO SAIU DAQUI. Numa tela de celular ele cobrava tres
+   rolagens antes de a pagina comecar, e a fachada mobile de entao era
+   COMPOSTA — foto nitida colada sobre uma copia dela borrada, desenhada pra
+   ficar ATRAS do card da recepcao. Com o card ainda pequeno, no comeco do
+   percurso, a base borrada aparecia sozinha e lia como uma segunda imagem
+   fosca sem proposito.
+
+   ============ A FOTO DO CELULAR JA FOI TROCADA DUAS VEZES ============
+
+   PRIMEIRA TROCA (19/08/2026): a composta borrada virou `fachada-mobile.webp`,
+   uma foto REAL da fachada em RETRATO (1086x1448) fornecida pelo usuario.
+   Resolveu a composicao, mas a propria foto tinha um borrao marrom-escuro
+   (reflexo/sombra do vidro) que o usuario circulou num print e pediu pra
+   trocar.
+
+   SEGUNDA TROCA (19/08/2026, mesma data): entrou `Gemini_Generated_Image_
+   xi59u9...jpg`, imagem gerada/editada pelo usuario, QUADRADA na origem
+   (2048x2048) — sem o borrao. O arquivo final e um recorte 1350x2048 dessa
+   imagem (`crop=1350:2048:230:0`), centrado no letreiro, depois reduzido pra
+   820px de largura (820x1244). Sem correcao de cor: a imagem ja veio no tom
+   quente da paleta.
+
+   Foto horizontal num quadro de retrato nao tem espaco vazio: o assunto ocupa
+   a largura inteira e o texto cai sempre em cima de alguma coisa — por isso a
+   composta antiga (fundo com veu) nao funcionava, e por isso o recorte novo
+   preserva o quadro vertical: letreiro em cima, calcada embaixo, area limpa
+   onde o texto mora.
+
+   ⚠️⚠️ A ALTURA DO HERO E O QUE MANTEM O LETREIRO INTEIRO — a conta esta aqui
+   pra nao ter que refazer. Com `cover`, quanto MAIS ALTO o hero, mais a imagem
+   e ampliada pra cobrir a altura e mais largura ela perde nas laterais. Hero
+   alto = letreiro cortado, o contrario da intuicao.
+
+   Medido no arquivo de 820px de largura (apos o recorte): o letreiro vai de
+   x=42 a x=778 — 736px, 90% da largura, quase centrado (o recorte foi feito
+   de proposito em volta do centro do letreiro). A largura visivel da foto e
+   390 / (altura / 1244):
+
+       altura maxima sem nenhum corte = 1244 * 390 / 820 = 592px
+
+   O hero fica em `min(72vh,600px)` — 600px passa esse teto por 8px, ou seja
+   um corte de ~6px de cada lado. A margem ate a letra mais proxima (42px) e
+   sete vezes esse corte: folga grande, nao precisa mexer no teto de 600px.
+   **Se um dia trocar a foto de novo:** refazer o recorte centrado no letreiro
+   (nao so redimensionar) e reconferir essa conta com print a 390px. O
+   `background-position` horizontal virou `center` (era 27% na foto antiga,
+   descentrada) porque o recorte novo ja nasce com o letreiro no meio.
+
+   COMO, na marcacao: nao ha um segundo hero em HTML. A mesma marcacao vira
+   layout de fluxo — o trilho deixa de ser sticky, vira coluna flex alinhada
+   embaixo e RECEBE A FOTO COMO BACKGROUND; o `.palco__fundo` (que e o
+   <picture> da fachada do desktop) e o card da recepcao saem os dois. Todas as
+   propriedades que dependiam de --p ganham valor fixo. O JS pode continuar
+   escrevendo --p que nao muda nada — e nem escreve: com `height:auto` o curso
+   fica negativo e ele para em p=0 sozinho.
+
+   A ordem visual e montada por `order`, porque a ordem do HTML foi feita pro
+   palco: titulo, 4,9, chamada e botoes. */
 @media (max-width:700px){
-  .palco{--w0:68vw}
-  html.js .palco{height:190vh}
-  /* Titulo mais longo que o do Rancho ("Seu sorriso saudavel," tem 21
-     caracteres contra 10 de "Seu pedaco"), e a linha e nowrap. Em 7.6vw ele
-     cabe inteiro a 360px; acima disso passa da borda e o overflow do trilho
-     corta a palavra. Trocar o texto pede refazer essa conta. */
-  .palco__meia{font-size:clamp(1.6rem,7.6vw,3.2rem)}
-  .palco__nota{font-size:.8rem}
-  .palco__nota--dir{font-size:.74rem}
+  html.js .palco,.palco{height:auto}
+  html.js .palco .palco__trilho,.palco__trilho{
+    position:static;height:auto;overflow:visible;
+    display:flex;flex-direction:column;justify-content:flex-end;
+    min-height:min(72vh,600px);
+    padding:clamp(3rem,14vw,5rem) 1.25rem clamp(1.8rem,6vw,2.6rem);
+    background-image:
+      linear-gradient(180deg,rgba(var(--veu),0) 0%,rgba(var(--veu),.22) 26%,rgba(var(--veu),.62) 52%,rgba(var(--veu),.90) 100%),
+      url("assets/img/fachada-mobile.webp"),
+      linear-gradient(160deg,#5A4638 0%,#3B2E26 45%,#2A2019 100%);
+    background-size:cover,cover,cover;
+    background-position:center,center top,center;
+  }
+  /* O <picture> da fachada do desktop, o card da recepcao e o veu do rodape
+     sao todos pecas do percurso. Sem percurso, saem os tres — a fachada do
+     celular entra por background acima. A recepcao continua no site, na
+     galeria. */
+  .palco__fundo,.palco__midia,.palco__trilho::after{display:none}
+
+  /* ⚠️ O `place-items:start` NAO e redundante — sem ele o titulo fica 30px
+     mais pra dentro que todo o resto do bloco, e o desalinhamento e sutil o
+     bastante pra passar batido num print.
+     Por que: a regra base do palco tem `display:grid;place-items:center`. Aqui
+     o display vira `block`, e a intuicao diz que o alinhamento de grid morre
+     junto — mas nao morre. `justify-items` TAMBEM se aplica a container block
+     (Box Alignment nivel 3, e o Chrome implementa): ele faz cada filho de
+     bloco encolher pro proprio conteudo e centralizar. Os spans do titulo
+     ficavam com 290px de largura dentro de 350px, centrados. `text-align:left`
+     nao resolve porque o problema nao e o texto dentro da caixa — e a caixa. */
+  .palco__titulo{position:static;display:block;place-items:start;order:2;text-align:left;pointer-events:auto}
+  .palco__titulo::before{display:none}
+  /* Duas linhas de verdade, nao dois spans sobrepostos em grid. E sem o
+     brilho dourado varrendo: e animacao de palco, e aqui nao ha palco. */
+  .palco__meia{
+    display:block;transform:none;white-space:normal;
+    font-size:clamp(1.9rem,8.4vw,2.9rem);
+    animation:none;background-image:none;
+    -webkit-text-fill-color:#fff;color:#fff;
+    text-shadow:0 2px 20px rgba(0,0,0,.55);
+  }
+  .palco__nota{position:static;transform:none;white-space:normal;font-size:.85rem}
+  .palco__nota--esq{order:3;margin-top:.9rem}
+  /* A linha do local SAI no celular, por dois motivos que se somam:
+     1. como selo acima do titulo ela encostava na linha "ODONTOLOGIA
+        INTEGRADA" do letreiro — texto sobre texto, e o do letreiro e o mais
+        bonito dos dois;
+     2. e informacao repetida: a faixa de credenciais, imediatamente abaixo do
+        hero, ja traz "Rua Negrao de Lima, 51 · Alvorada, Joao Monlevade" por
+        escrito, e ainda existe a secao "Onde fica" com mapa.
+     Os pixels que ela ocupava viraram respiro entre o letreiro e o titulo.
+     ("Role para entrar ↓" ja nao fazia sentido sem percurso de qualquer
+     forma — e o span .palco__rolar.) */
+  .palco__nota--dir{display:none}
+  .palco__final{
+    position:static;order:4;opacity:1;pointer-events:auto;
+    margin-top:1.4rem;padding:0;text-align:left;
+  }
+  /* O peso do paragrafo desce de 600 pra 500 porque sobre foto o negrito em
+     duas linhas fica pesado — sobre o desktop ele fica, que la e uma linha
+     so no meio de muito espaco. */
+  .palco__final p{font-weight:500;margin-bottom:0}
+  /* ⚠️ LADO A LADO, NAO EMPILHADO — mudou por pedido do usuario depois de ver
+     a versao cheia (cada botao numa linha). Os dois dividem a largura igual
+     (flex:1 1 0) em vez de cada um tomar a linha inteira.
+     O clamp() no font-size e o que segura isso em telas de ~320-360px: sem
+     ele, "Agendar avaliacao" com o icone e mais largo que a metade da tela
+     nesses aparelhos, e como white-space e nowrap (pra nao quebrar a pilula
+     em duas linhas), o texto estouraria a borda em vez de quebrar. */
+  .palco__acoes{gap:.5rem;flex-wrap:nowrap}
+  .palco__acoes .btn{flex:1 1 0;justify-content:center;white-space:nowrap}
+  .palco__acoes .btn--peq{padding:.58rem .5rem;font-size:clamp(.72rem,3.6vw,.85rem);gap:.35rem}
+  .palco__acoes .btn--peq .btn__ico{width:14px;height:14px}
 }
 
 .hero__acoes{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.8rem}
@@ -412,14 +547,76 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 }
 .moldura img{width:100%}
 
-/* ====================== faixa de credenciais ====================== */
-.credenciais{background:var(--marrom);color:#EFE7DB;padding:1.5rem 0}
-.credenciais__lista{
-  display:flex;flex-wrap:wrap;justify-content:center;
-  gap:.6rem clamp(1.2rem,4vw,3rem);text-align:center;
+/* ====================== faixa de credenciais ======================
+   VIRA LETREIRO EM QUALQUER TELA — rola sozinho, em loop, sem parar. Nasceu
+   so pro celular em 19/08/2026 (os quatro itens empilhavam em tres linhas
+   apertadas). Nessa mesma data, mais tarde, o usuario pediu que rolasse
+   tambem no desktop, igual ao letreiro da GeP Lavanderia — mesmo com os itens
+   cabendo numa linha so ali, e pediu DOIS itens a mais pra a faixa preencher
+   melhor a tela larga. Por isso a faixa hoje tem seis credenciais, nao
+   quatro, e o layout parado ("display:contents", uma linha centralizada) so
+   volta com `prefers-reduced-motion`.
+
+   COMO O LOOP FECHA SEM COSTURA. O truque padrao de letreiro em CSS puro e
+   duplicar o conteudo: dois `.credenciais__trilho` iguais, lado a lado dentro
+   de `.credenciais__pista`. Anima-se a PISTA (o pai), nao os trilhos, e o
+   alvo e -50% — nao -100%. A pista tem a largura dos DOIS trilhos somados;
+   50% da largura dela e exatamente a largura de UM trilho. Deslocar a pista
+   nessa distancia exata faz o trilho B pousar pixel a pixel onde o trilho A
+   comecou — como os dois sao identicos, o olho nao percebe o corte, e a
+   animacao pode repetir do zero (`from{translateX(0)}`) sem nenhum salto.
+   Se entrar um item novo, o unico ajuste necessario e nenhum: os dois
+   trilhos continuam identicos entre si, a conta continua batendo.
+
+   POR QUE HA DOIS <div class="credenciais__trilho"> NO HTML, E NAO UM SO
+   ANIMADO COM CSS. `translateX(-50%)` precisa que o elemento tenha o DOBRO do
+   conteudo visivel — um trilho so, do tamanho normal, andaria -50% de si
+   mesmo e sumiria de cena com metade do texto ainda faltando entrar. A copia
+   e o que da a pista o comprimento certo pra conta fechar.
+
+   ACESSIBILIDADE. O segundo trilho tem `aria-hidden="true"`: e visual, existe
+   so pro loop funcionar, e um leitor de tela nao deve ler os mesmos itens
+   duas vezes. */
+.credenciais{background:var(--marrom);color:#EFE7DB;padding:1.5rem 0;overflow:hidden}
+.credenciais__pista{
+  display:flex;flex-wrap:nowrap;justify-content:flex-start;text-align:left;
+  width:max-content;margin-inline:0;gap:0;padding-left:1.25rem;
+  animation:letreiro 34s linear infinite;
+  will-change:transform;
 }
-.credenciais__item{font-size:.86rem;letter-spacing:.03em}
+/* Cada trilho e flex de verdade — precisa ocupar espaco proprio pra ficar
+   lado a lado com o outro. `flex:none` impede o flexbox de encolher os
+   trilhos pra caber na tela, que e o oposto do que um letreiro precisa: ele
+   TEM que ser mais largo que a viewport, mesmo no desktop. */
+.credenciais__trilho{
+  display:flex;flex:none;align-items:center;
+  gap:clamp(1.2rem,4vw,3rem);padding-right:clamp(1.2rem,4vw,3rem);
+}
+.credenciais__trilho[aria-hidden]{display:flex}
+.credenciais__item{font-size:.86rem;letter-spacing:.03em;white-space:nowrap}
 .credenciais__item b{color:var(--dourado-claro);font-weight:600}
+
+@keyframes letreiro{
+  from{transform:translateX(0)}
+  to{transform:translateX(-50%)}
+}
+/* prefers-reduced-motion desliga o letreiro, mas nao pode so parar o CSS:
+   sem isso os doze spans (seis + a copia) ficariam lado a lado, mais largos
+   que a tela, parados — metade do conteudo cortado pra sempre, sem jeito de
+   ler. A saida e reverter pro layout parado de sempre: os itens voltam a
+   quebrar linha, centralizados, e a copia oculta some (display:none).
+   Movimento desligado, mas nada de conteudo perdido. */
+@media (prefers-reduced-motion:reduce){
+  .credenciais{overflow:visible}
+  .credenciais__pista{
+    animation:none;flex-wrap:wrap;width:auto;margin-inline:auto;padding-left:0;
+    justify-content:center;text-align:center;
+    gap:.6rem clamp(1.2rem,4vw,3rem);
+  }
+  .credenciais__trilho{display:contents}
+  .credenciais__trilho[aria-hidden]{display:none}
+  .credenciais__item{white-space:normal}
+}
 
 /* ====================== promessas ====================== */
 .promessas{display:grid;gap:1.1rem}
@@ -616,9 +813,13 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 .insta__item img{width:100%;height:100%;object-fit:cover;display:block}
 .insta__cta{margin-top:1.6rem;position:relative;z-index:1}
 .btn__ico{width:18px;height:18px;fill:currentColor;flex:none}
-/* Estado inicial (cards recolhidos no centro): so com JS e sem "reduzir
-   movimento". Sem isso os cards ja nascem na posicao final — a classe e
-   reforco, nao requisito. */
+/* ⚠️ REINTRODUZIDO em 19/08/2026 (segunda vez), a pedido explicito do usuario,
+   depois de ter sido removido nesta mesma data pelo motivo documentado no
+   bloco grande la em cima (reveal dava impressao de site lento no celular).
+   Desta vez ele quis a entrada de volta nos dois tamanhos de tela, sabendo do
+   risco. Se a reclamacao de "parece lento no celular" voltar, o primeiro
+   suspeito e este leque — e a saida ja documentada e so tirar de novo a
+   classe --entrando e o bloco de JS da secao 2. */
 .insta__item--entrando{
   transform:translate(-50%,-50%) rotate(0deg) scale(.84);opacity:0;
   transition:transform .9s cubic-bezier(.16,1,.3,1),opacity .6s ease;
@@ -668,9 +869,20 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 /* ====================== comodidades ======================
    Os dados vieram da ficha do Google da clinica, campo por campo. Sao os
    detalhes que ninguem pergunta por telefone e que decidem a visita de quem
-   usa cadeira de rodas, chega de carro ou so quer saber se paga no cartao. */
+   usa cadeira de rodas, chega de carro ou so quer saber se paga no cartao.
+
+   ⚠️ QUATRO BLOCOS, UMA FRASE CADA — nao voltar pra lista de marcadores.
+   A primeira versao copiava a ficha do Google campo a campo: 6 blocos e 15
+   itens, com "Entrada acessivel para cadeira de rodas / Banheiro acessivel
+   para cadeira de rodas / Estacionamento acessivel para cadeira de rodas" em
+   linhas separadas. Virou parede de texto repetido pra dizer tres coisas, e
+   quebrava em duas fileiras desalinhadas no desktop. Agora cada bloco e uma
+   frase corrida. O CONTEUDO nao mudou — "necessario marcar hora" foi junto
+   com agendamento, "banheiro para pacientes" esta implicito no de genero
+   neutro, e so "empresa de empreendedoras" saiu (rotulo de ficha, nao
+   informacao que decide visita). Se a ficha do Google mudar, muda aqui. */
 .comodidades{
-  display:grid;gap:1.6rem 2.2rem;margin-top:2.4rem;
+  display:grid;gap:2rem 2.2rem;margin-top:2.4rem;
   grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
 }
 .comodidade h3{
@@ -678,16 +890,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
   padding-bottom:.7rem;margin-bottom:.9rem;
   border-bottom:1px solid var(--borda);
 }
-.comodidade ul{list-style:none;margin:0;padding:0;display:grid;gap:.5rem}
-.comodidade li{
-  position:relative;padding-left:1.5rem;
-  font-size:.94rem;color:var(--texto-suave);line-height:1.5;
-}
-.comodidade li::before{
-  content:"";position:absolute;left:0;top:.5em;
-  width:8px;height:8px;border-radius:50%;
-  background:var(--sage);border:1px solid var(--sage-esc);
-}
+.comodidade p{margin:0;font-size:.94rem;color:var(--texto-suave);line-height:1.55}
 
 /* ====================== duvidas ====================== */
 .faq{display:grid;gap:.7rem}
@@ -719,9 +922,15 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 /* Duas colunas, sem linha divisoria: o rotulo do dia em versalete apagado e a
    hora em branco, alinhada a esquerda numa coluna so. Ler "quando abre" tem
    que ser uma varredura vertical, e nao um pingue-pongue entre as bordas —
-   por isso a hora nao vai encostada na direita. */
+   por isso a hora nao vai encostada na direita.
+
+   ⚠️ width:auto, NAO width:100%. Com 100% a tabela estica ate a coluna e o
+   navegador reparte a sobra entre as duas — abria um vao de uns 180px entre
+   "SEGUNDA A SEXTA" e o horario, e o olho perdia a ligacao entre o rotulo e o
+   numero. Com auto a tabela encolhe pro conteudo e quem controla o respiro e
+   o padding-right do th, que e um valor unico e previsivel. */
 .horario{
-  width:100%;margin-top:1.8rem;border-collapse:collapse;
+  width:auto;margin-top:1.8rem;border-collapse:collapse;
   font-size:.95rem;text-align:left;
 }
 .horario caption{
@@ -732,11 +941,9 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 .horario th,.horario td{padding:.5rem 0;vertical-align:baseline}
 .horario th{
   font-weight:600;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
-  color:#A99880;padding-right:1.6rem;white-space:nowrap;
+  color:#A99880;padding-right:1.7rem;white-space:nowrap;
 }
 .horario td{color:#fff;font-variant-numeric:tabular-nums}
-.horario__nota{margin:1rem 0 0;font-size:.88rem;color:#CFC2B4}
-.horario__nota a{color:var(--dourado-claro);text-decoration:underline;text-underline-offset:3px}
 /* No celular as duas colunas nao cabem lado a lado (o rotulo em versalete come
    140px e a hora pede 230px). Empilhar mantem a mesma leitura sem apertar. */
 @media (max-width:560px){
@@ -753,7 +960,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
   aspect-ratio:2/1;
 }
 .local__fachada img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
- (max-width:700px){.local__fachada{aspect-ratio:4/3}}
+@media (max-width:700px){.local__fachada{aspect-ratio:4/3}}
 
 /* ====================== rodape ====================== */
 .rodape{
@@ -849,7 +1056,10 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
       <a href="#dentista">A dentista</a>
       <a href="#local">Onde fica</a>
     </nav>
-    <a class="btn topo__cta" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20consulta." target="_blank" rel="noopener">Agendar</a>
+    <a class="btn topo__cta" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20consulta." target="_blank" rel="noopener">
+      <svg class="btn__ico" aria-hidden="true"><use href="#i-zap"/></svg>
+      Agendar
+    </a>
   </div>
 </header>
 
@@ -863,16 +1073,40 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 <section class="palco" id="topo">
   <div class="palco__trilho">
 
+    <!-- ESTE <picture> E SO DO DESKTOP. Abaixo de 700px o CSS o esconde
+         inteiro (`.palco__fundo{display:none}`) e a fachada do celular entra
+         por `url()` no proprio `.palco__trilho` — sao DUAS FOTOS DIFERENTES,
+         nao dois cortes da mesma:
+
+           desktop → palco-fachada.webp     horizontal, retocada por IA
+           celular → fachada-mobile.webp    vertical, foto real
+
+         Nao ha mais `<source media="(max-width:700px)">` aqui de proposito.
+         Ja houve, apontando pra uma fachada composta (foto nitida colada sobre
+         uma copia borrada dela mesma) que existia so pra caber num quadro de
+         retrato. Ela saiu em 19/08/2026: com a foto vertical de verdade o
+         problema que a composicao resolvia deixou de existir. Manter um
+         <source> mobile aqui hoje so faria o celular baixar uma foto que ele
+         nunca mostra. -->
     <div class="palco__fundo">
       <picture>
-        <source media="(max-width: 700px)" srcset="assets/img/palco-fachada-mobile.webp">
         <img src="assets/img/palco-fachada.webp" alt="Fachada da Realce Odontologia Integrada: letreiro em metal escovado sobre a porta de vidro, na Rua Negrão de Lima" width="1500" height="1102" fetchpriority="high">
       </picture>
     </div>
 
+    <!-- O card da recepcao e peca do percurso e NAO aparece no celular (o CSS
+         o esconde ate 700px, onde o hero e estatico). Por isso duas coisas:
+
+         1. Nao ha mais <source> mobile. A versao -mobile.webp foi apagada:
+            eram 106 KB baixados pra nada, mais que a propria fachada de fundo.
+         2. loading="lazy" NAO e descuido com o hero. Num container
+            display:none o navegador nunca calcula intersecao e nunca busca a
+            imagem — e assim que o celular deixa de pagar por ela. No desktop
+            o card esta na tela desde o primeiro quadro, entao a imagem carrega
+            de imediato do mesmo jeito. O LCP e a fachada de fundo, que tem
+            preload e fetchpriority="high" no <head>, e nao este card. -->
     <picture class="palco__midia">
-      <source media="(max-width: 700px)" srcset="assets/img/palco-recepcao-mobile.webp">
-      <img src="assets/img/palco-recepcao.webp" alt="Recepção da Realce: painel de madeira com a logo em dourado, luminária ondulada e orquídea sobre o balcão" width="1400" height="934">
+      <img src="assets/img/palco-recepcao.webp" alt="Recepção da Realce: painel de madeira com a logo em dourado, luminária ondulada e orquídea sobre o balcão" width="912" height="1170" loading="lazy">
     </picture>
 
     <h1 class="palco__titulo">
@@ -881,13 +1115,18 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
     </h1>
 
     <p class="palco__nota palco__nota--esq"><b>4,9</b> <span class="estrelas" aria-hidden="true">★★★★★</span> em <b>105</b> avaliações no Google</p>
-    <p class="palco__nota palco__nota--dir">João Monlevade, MG · Role para entrar ↓</p>
+    <!-- "Role para entrar" so faz sentido onde ha percurso. No celular o hero
+         e estatico e o span some; o que sobra vira o selo de local do topo. -->
+    <p class="palco__nota palco__nota--dir">João Monlevade, MG<span class="palco__rolar"> · Role para entrar ↓</span></p>
 
     <div class="palco__final">
       <p>Ortodontia, clareamento, implantes e clínica geral, no Bairro Alvorada.</p>
       <div class="palco__acoes">
-        <a class="btn" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20consulta." target="_blank" rel="noopener">Agendar pelo WhatsApp</a>
-        <a class="btn btn--linha" href="#tratamentos">Ver tratamentos</a>
+        <a class="btn btn--peq" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20consulta." target="_blank" rel="noopener">
+          <svg class="btn__ico" aria-hidden="true"><use href="#i-zap"/></svg>
+          Agendar avaliação
+        </a>
+        <a class="btn btn--linha btn--peq" href="#tratamentos">Ver Especialidades</a>
       </div>
     </div>
 
@@ -930,37 +1169,73 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 </script>
 
 <!-- ===== credenciais ===== -->
+<!-- ===== faixa de credenciais =====
+     Os quatro itens aparecem duas vezes de proposito — e o que faz o letreiro
+     do celular fechar sem costura. Se um item mudar (novo convenio, por
+     exemplo), muda nos DOIS trilhos, senao o loop passa a repetir informacao
+     desatualizada por meia volta. Ver o comentario grande no CSS. -->
 <section class="credenciais">
-  <div class="env credenciais__lista">
-    <span class="credenciais__item"><b>Ortodontia</b> e clínica geral</span>
-    <span class="credenciais__item">Atendemos <b>PASA</b> e <b>IPSM</b></span>
-    <span class="credenciais__item">Rua Negrão de Lima, 51 · <b>Alvorada, João Monlevade</b></span>
-    <span class="credenciais__item">Responsável técnica <b>CRO-MG 44763</b></span>
+  <div class="env credenciais__pista">
+    <div class="credenciais__trilho">
+      <span class="credenciais__item"><b>Ortodontia</b> e clínica geral</span>
+      <span class="credenciais__item">Atendemos <b>PASA</b> e <b>IPSM</b></span>
+      <span class="credenciais__item">Rua Negrão de Lima, 51 · <b>Alvorada, João Monlevade</b></span>
+      <span class="credenciais__item">Responsável técnica <b>CRO-MG 44763</b></span>
+      <span class="credenciais__item"><b>4,9</b> no Google em <b>105</b> avaliações</span>
+      <span class="credenciais__item">Estacionamento <b>no local, coberto e gratuito</b></span>
+    </div>
+    <div class="credenciais__trilho" aria-hidden="true">
+      <span class="credenciais__item"><b>Ortodontia</b> e clínica geral</span>
+      <span class="credenciais__item">Atendemos <b>PASA</b> e <b>IPSM</b></span>
+      <span class="credenciais__item">Rua Negrão de Lima, 51 · <b>Alvorada, João Monlevade</b></span>
+      <span class="credenciais__item">Responsável técnica <b>CRO-MG 44763</b></span>
+      <span class="credenciais__item"><b>4,9</b> no Google em <b>105</b> avaliações</span>
+      <span class="credenciais__item">Estacionamento <b>no local, coberto e gratuito</b></span>
+    </div>
   </div>
 </section>
 
 <!-- ===== as tres promessas =====
-     Copy literal dela, do post fixado sobre aparelho ortodontico. Nao trocar
-     por texto generico de clinica: sao as tres dores reais de quem usa
-     aparelho, e foi ela quem escreveu. -->
+     OS TRES TITULOS SAO COPY LITERAL DELA, do post fixado sobre aparelho
+     ortodontico (transcrito em empresa.md):
+
+       ✅ Tratamento com a mesma dentista do inicio ao fim
+       ✅ Sem enrolacao, tratamento objetivo e sem demora
+       ✅ Profissional experiente, focada em saude bucal
+
+     Nao trocar por texto generico de clinica: sao as tres dores reais de quem
+     usa aparelho, e foi ela quem escreveu.
+
+     ⚠️ O QUE MUDOU AQUI E POR QUE. O paragrafo de apoio do primeiro card dizia
+     "Voce nao encontra um profissional diferente a cada retorno". Isso NAO e
+     frase dela — era ampliacao nossa, e ampliava justo pro lado errado: virava
+     promessa de que ela atende sozinha. Nao ha nada que confirme isso, e ha
+     indicio do contrario (uma avaliacao de 1 ano fala em "os dentistas", no
+     plural, e outra elogia "a equipe de secretarios"). O titulo continua
+     porque e citacao dela e a responsabilidade e dela; o apoio agora fala de
+     ACOMPANHAMENTO, que e verdade com equipe ou sem.
+
+     Ver bloco 15 do CLAUDE.md do projeto: frase nova sobre continuidade de
+     atendimento ou e citacao dela, ou nao entra. A pergunta "ha outro
+     profissional na clinica?" segue aberta pra confirmar com ela. -->
 <section class="secao secao--creme">
   <div class="env">
-    <div class="cabeca rv">
+    <div class="cabeca">
       <span class="olho">Como aqui se trabalha</span>
       <h2>Três coisas que a gente não abre mão</h2>
     </div>
     <div class="promessas">
-      <article class="promessa rv rv--surge">
+      <article class="promessa">
         <div class="promessa__marca">I</div>
         <h3>A mesma dentista, do início ao fim</h3>
-        <p>Quem começa o seu tratamento é quem termina. Você não encontra um profissional diferente a cada retorno, nem precisa explicar seu caso de novo.</p>
+        <p>Seu caso é acompanhado do começo ao fim, com o histórico sempre à mão. A cada retorno a conversa continua de onde parou.</p>
       </article>
-      <article class="promessa rv rv--surge">
+      <article class="promessa">
         <div class="promessa__marca">II</div>
         <h3>Sem enrolação</h3>
         <p>Tratamento objetivo e sem demora. Na primeira consulta você entende o que precisa ser feito, em quantas etapas e em quanto tempo.</p>
       </article>
-      <article class="promessa rv rv--surge">
+      <article class="promessa">
         <div class="promessa__marca">III</div>
         <h3>Foco em saúde bucal</h3>
         <p>Antes da estética vem a saúde. Cada plano de tratamento parte do que a sua boca precisa, não de um pacote pronto.</p>
@@ -977,56 +1252,56 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
      inventado — a origem de cada um esta no empresa.md. -->
 <section class="secao" id="tratamentos">
   <div class="env">
-    <div class="cabeca rv">
+    <div class="cabeca">
       <span class="olho">Tratamentos</span>
       <h2>O que a gente faz</h2>
       <p class="chamada">Odontologia integrada: da manutenção do dia a dia ao alinhamento e à estética do sorriso, no mesmo lugar, sem precisar procurar outra clínica a cada etapa.</p>
     </div>
     <div class="tratamentos">
 
-      <article class="tratamento rv rv--surge">
+      <article class="tratamento">
         <div class="ico ico--ortodontia" aria-hidden="true"></div>
         <h3>Ortodontia</h3>
         <p>Aparelho para alinhar os dentes e corrigir a mordida, de crianças a adultos, com manutenção acompanhada de perto.</p>
       </article>
 
-      <article class="tratamento rv rv--surge">
+      <article class="tratamento">
         <div class="ico ico--clareamento" aria-hidden="true"></div>
         <h3>Clareamento dental</h3>
         <p>Clareamento feito depois da avaliação da saúde da gengiva e do esmalte, para devolver a cor natural dos dentes.</p>
       </article>
 
-      <article class="tratamento rv rv--surge">
+      <article class="tratamento">
         <div class="ico ico--implante" aria-hidden="true"></div>
         <h3>Implantes dentários</h3>
         <p>Reposição de dente perdido com planejamento prévio e acompanhamento em cada etapa da recuperação.</p>
       </article>
 
-      <article class="tratamento rv rv--surge">
+      <article class="tratamento">
         <div class="ico ico--limpeza" aria-hidden="true"></div>
         <h3>Limpeza e prevenção</h3>
         <p>Profilaxia e orientação de higiene para manter a gengiva saudável — a base de qualquer tratamento que dure.</p>
       </article>
 
-      <article class="tratamento rv rv--surge">
+      <article class="tratamento">
         <div class="ico ico--restauracao" aria-hidden="true"></div>
         <h3>Restaurações estéticas</h3>
         <p>Restauração de dente danificado ou cariado, com material que acompanha a cor do seu dente.</p>
       </article>
 
-      <article class="tratamento rv rv--surge">
+      <article class="tratamento">
         <div class="ico ico--cirurgia" aria-hidden="true"></div>
         <h3>Cirurgia oral</h3>
         <p>Extração de sisos, inclusive inclusos, com planejamento prévio e acompanhamento da recuperação.</p>
       </article>
 
-      <article class="tratamento rv rv--surge">
+      <article class="tratamento">
         <div class="ico ico--infantil" aria-hidden="true"></div>
         <h3>Atendimento infantil</h3>
         <p>Acompanhamento do crescimento e da troca dos dentes, num ambiente pensado para a criança se sentir à vontade.</p>
       </article>
 
-      <article class="tratamento rv rv--surge">
+      <article class="tratamento">
         <div class="ico ico--harmonizacao" aria-hidden="true"></div>
         <h3>Harmonização facial</h3>
         <p>Aplicação de toxina botulínica, com avaliação individual antes de qualquer procedimento.</p>
@@ -1039,33 +1314,33 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 <!-- ===== a clinica por dentro ===== -->
 <section class="secao secao--creme" id="clinica">
   <div class="env">
-    <div class="cabeca rv">
+    <div class="cabeca">
       <span class="olho">A clínica</span>
       <h2>Por dentro da Realce</h2>
       <p class="chamada">Clínica nova, com recepção ampla, sala de planejamento e consultórios próprios. Ambiente claro, silencioso e bem cuidado, do jeito que dá gosto de esperar a sua vez.</p>
     </div>
     <div class="galeria">
-      <figure class="rv rv--surge">
+      <figure>
         <img src="assets/img/corredor.webp" width="900" height="512" loading="lazy"
              alt="Recepção da Realce com painel de madeira, logo em dourado e corredor de acesso aos consultórios">
       </figure>
-      <figure class="rv rv--surge">
+      <figure>
         <img src="assets/img/recepcao.webp" width="720" height="728" loading="lazy"
              alt="Balcão da recepção e parede verde com a frase Excelência em odontologia, dedicação em cada sorriso">
       </figure>
-      <figure class="rv rv--surge">
+      <figure>
         <img src="assets/img/consultorio-1.webp" width="720" height="734" loading="lazy"
              alt="Consultório com cadeira odontológica, bancada e frase dourada na parede">
       </figure>
-      <figure class="rv rv--surge">
+      <figure>
         <img src="assets/img/consultorio-3.webp" width="720" height="825" loading="lazy"
              alt="Consultório da Realce com iluminação embutida e detalhe de parede iluminado">
       </figure>
-      <figure class="rv rv--surge">
+      <figure>
         <img src="assets/img/consultorio-2.webp" width="720" height="731" loading="lazy"
              alt="Segundo consultório, com cadeira odontológica, pia e bancada de apoio">
       </figure>
-      <figure class="rv rv--surge">
+      <figure>
         <img src="assets/img/sala-planejamento.webp" width="720" height="820" loading="lazy"
              alt="Sala de atendimento e planejamento, com mesa, cadeiras e painel ripado de madeira">
       </figure>
@@ -1084,7 +1359,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
      venha da boca do paciente. -->
 <section class="secao secao--sage" id="avaliacoes">
   <div class="env">
-    <div class="cabeca rv">
+    <div class="cabeca">
       <span class="olho">Quem já passou por aqui</span>
       <h2>O que os pacientes escrevem no Google</h2>
     </div>
@@ -1092,7 +1367,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
     <!-- Os numeros sobem de 0 ate o valor real quando a secao entra na tela,
          e as estrelas se preenchem junto. O valor final mora no data-alvo e
          tambem escrito no HTML, entao sem JS a nota aparece pronta. -->
-    <div class="placar rv" data-placar>
+    <div class="placar" data-placar>
       <div class="placar__nota" data-conta data-alvo="4.9" data-casas="1">4,9</div>
       <div>
         <span class="estrelas-med" data-estrelas aria-hidden="true">
@@ -1104,7 +1379,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
       <span class="placar__fonte">Fonte: Google · agosto de 2026</span>
     </div>
 
-    <div class="carrossel rv" data-carrossel>
+    <div class="carrossel" data-carrossel>
       <div class="carrossel__janela">
         <div class="avaliacoes" data-trilho>
 
@@ -1179,17 +1454,17 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
      e busca real numa cidade de mineracao, e hoje nao devolve pagina dela. -->
 <section class="secao secao--escura" id="convenios">
   <div class="env">
-    <div class="cabeca rv">
+    <div class="cabeca">
       <span class="olho">Convênios</span>
       <h2>Atendemos o seu plano odontológico</h2>
       <p class="chamada">Se você tem plano pela empresa ou pelo serviço público, é possível que já esteja coberto aqui. Na dúvida, chame no WhatsApp que a gente confere para você.</p>
     </div>
     <div class="convenios">
-      <div class="convenio rv rv--surge">
+      <div class="convenio">
         <b>PASA</b>
         <span>Plano odontológico</span>
       </div>
-      <div class="convenio rv rv--surge">
+      <div class="convenio">
         <b>IPSM</b>
         <span>Instituto de Previdência dos Servidores Militares de MG</span>
       </div>
@@ -1206,11 +1481,11 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
      Garantia de resultado e vedada pelo Codigo de Etica Odontologica. -->
 <section class="secao" id="dentista">
   <div class="env dupla">
-    <figure class="moldura rv rv--esq" style="margin:0">
+    <figure class="moldura" style="margin:0">
       <img src="assets/img/dra-fernanda.webp" width="780" height="976" loading="lazy"
            alt="Dra. Fernanda Magalhães atendendo em um dos consultórios da Realce">
     </figure>
-    <div class="rv rv--dir">
+    <div>
       <span class="olho">Quem atende você</span>
       <h2>Prazer, Fernanda.</h2>
       <p class="chamada">Cirurgiã-dentista formada em Odontologia e com especialização em Ortodontia, responsável técnica da Realce Odontologia Integrada, em João Monlevade.</p>
@@ -1245,11 +1520,11 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
      com o card — é uma linha. -->
 <section class="secao secao--creme insta" id="instagram">
   <div class="env">
-    <div class="cabeca rv">
+    <div class="cabeca">
       <span class="olho">No Instagram</span>
       <h2>O dia a dia da clínica, por ela mesma</h2>
     </div>
-    <p class="chamada rv">
+    <p class="chamada">
       São 320 publicações e 1.772 pessoas acompanhando. Por lá a Dra. Fernanda
       mostra o consultório por dentro, responde as dúvidas que mais chegam e
       conta como é o atendimento antes de você marcar a primeira consulta.
@@ -1263,7 +1538,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
       <a class="insta__item" style="--i:2;--dy:12;--r:4deg;--n:.86;z-index:10" href="https://www.instagram.com/drafernandamagalhaes/" target="_blank" rel="noopener"><img src="assets/img/instagram/post-5.webp" alt="Publicação do Instagram: aplicação de toxina botulínica, do conteúdo sobre harmonização facial" width="540" height="720" loading="lazy" decoding="async"></a>
     </div>
 
-    <div class="insta__cta rv">
+    <div class="insta__cta">
       <a class="btn btn--linha" href="https://www.instagram.com/drafernandamagalhaes/" target="_blank" rel="noopener">
         <svg class="btn__ico" aria-hidden="true"><use href="#i-insta"/></svg>
         @drafernandamagalhaes
@@ -1275,36 +1550,36 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 <!-- ===== duvidas ===== -->
 <section class="secao" id="duvidas">
   <div class="env env--estreito">
-    <div class="cabeca rv">
+    <div class="cabeca">
       <span class="olho">Dúvidas frequentes</span>
       <h2>Antes de marcar</h2>
     </div>
     <div class="faq">
-      <details class="rv">
+      <details>
         <summary>Como faço para marcar uma consulta?</summary>
         <p>Pelo WhatsApp <b>(31) 97215-9568</b>. É o número da clínica, e quem responde é a nossa secretaria, dentro do horário de atendimento.</p>
       </details>
-      <details class="rv">
+      <details>
         <summary>Vocês atendem plano odontológico?</summary>
         <p>Sim. Atendemos <b>PASA</b> e <b>IPSM</b>. Se o seu plano for outro, mande uma mensagem que a gente confere para você.</p>
       </details>
-      <details class="rv">
+      <details>
         <summary>Quem faz o meu tratamento?</summary>
         <p>A <b>Dra. Fernanda Magalhães</b> é a responsável técnica da clínica e acompanha os casos de ortodontia. O seu histórico fica registrado aqui, então você não precisa recontar tudo a cada retorno.</p>
       </details>
-      <details class="rv">
+      <details>
         <summary>Vocês atendem crianças?</summary>
         <p>Sim. A Dra. Fernanda atende casos ortodônticos de crianças a adultos, e a clínica acompanha o crescimento e a troca dos dentes desde cedo.</p>
       </details>
-      <details class="rv">
+      <details>
         <summary>Na primeira consulta já dá para começar o aparelho?</summary>
         <p>A primeira consulta é de avaliação: a dentista examina, explica o que precisa ser feito e em quantas etapas. O tratamento é planejado com você a partir daí.</p>
       </details>
-      <details class="rv">
+      <details>
         <summary>Onde fica a clínica?</summary>
         <p>Na <b>Rua Negrão de Lima, 51 — Bairro Alvorada</b>, João Monlevade/MG, CEP 35930-054. O mapa está logo abaixo.</p>
       </details>
-      <details class="rv">
+      <details>
         <summary>Qual é o horário de atendimento?</summary>
         <p>De <b>segunda a sexta-feira</b>, das <b>9h às 12h</b> e das <b>14h às 18h</b>. A clínica fecha para o almoço entre 12h e 14h, e não atende aos sábados e domingos.</p>
       </details>
@@ -1323,61 +1598,30 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
      Se algum campo mudar na ficha, muda aqui junto. -->
 <section class="secao secao--creme" id="comodidades">
   <div class="env">
-    <div class="cabeca rv">
+    <div class="cabeca">
       <span class="olho">Antes de vir</span>
       <h2>O que você encontra na clínica</h2>
     </div>
 
     <div class="comodidades">
-      <div class="comodidade rv rv--surge">
+      <div class="comodidade">
         <h3>Acessibilidade</h3>
-        <ul>
-          <li>Entrada acessível para cadeira de rodas</li>
-          <li>Banheiro acessível para cadeira de rodas</li>
-          <li>Estacionamento acessível para cadeira de rodas</li>
-        </ul>
+        <p>Entrada, banheiro e estacionamento acessíveis para cadeira de rodas.</p>
       </div>
 
-      <div class="comodidade rv rv--surge">
+      <div class="comodidade">
         <h3>Estacionamento</h3>
-        <ul>
-          <li>Estacionamento no local</li>
-          <li>Estacionamento coberto e gratuito</li>
-        </ul>
+        <p>No local, coberto e gratuito.</p>
       </div>
 
-      <div class="comodidade rv rv--surge">
-        <h3>Formas de pagamento</h3>
-        <ul>
-          <li>Cartão de crédito</li>
-          <li>Cartão de débito</li>
-          <li>Pagamento por aproximação, no celular</li>
-        </ul>
+      <div class="comodidade">
+        <h3>Pagamento e agendamento</h3>
+        <p>Cartão de crédito, débito e por aproximação. Atendimento com hora marcada, agendada pelo WhatsApp.</p>
       </div>
 
-      <div class="comodidade rv rv--surge">
-        <h3>Agendamento</h3>
-        <ul>
-          <li>É necessário marcar hora</li>
-          <li>Agendamento pelo WhatsApp</li>
-        </ul>
-      </div>
-
-      <div class="comodidade rv rv--surge">
-        <h3>Comodidades</h3>
-        <ul>
-          <li>Banheiro para pacientes</li>
-          <li>Banheiro de gênero neutro</li>
-        </ul>
-      </div>
-
-      <div class="comodidade rv rv--surge">
+      <div class="comodidade">
         <h3>Acolhimento</h3>
-        <ul>
-          <li>Empresa de empreendedoras</li>
-          <li>Acolhe a comunidade LGBTQ+</li>
-          <li>Espaço seguro para pessoas transgênero</li>
-        </ul>
+        <p>Espaço seguro para a comunidade LGBTQ+ e para pessoas transgênero, com banheiro de gênero neutro.</p>
       </div>
     </div>
   </div>
@@ -1385,7 +1629,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 
 <section class="secao secao--escura" id="local">
   <div class="env">
-    <figure class="local__fachada rv">
+    <figure class="local__fachada">
       <img src="assets/img/fachada.webp" width="1400" height="1028" loading="lazy"
            alt="Fachada da Realce Odontologia Integrada, na Rua Negrão de Lima, 51, em João Monlevade">
     </figure>
@@ -1404,7 +1648,6 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
             <tr><th scope="row">Sábado e domingo</th><td>Fechado</td></tr>
           </tbody>
         </table>
-        <p class="horario__nota">Fora do horário, <a href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20consulta." target="_blank" rel="noopener">chame no WhatsApp</a>.</p>
         <div class="hero__acoes">
           <a class="btn" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20consulta." target="_blank" rel="noopener">Agendar pelo WhatsApp</a>
           <a class="btn btn--linha" href="https://maps.app.goo.gl/UgbfuSbwrjFDE2vt6" target="_blank" rel="noopener">Como chegar</a>
@@ -1426,7 +1669,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 <!-- ===== rodape ===== -->
 <footer class="rodape">
   <div class="env rodape__grade">
-    <div class="rv">
+    <div>
       <span class="rodape__logo"><img src="assets/img/logo.webp" width="720" height="202" alt="Realce Odontologia Integrada"></span>
       <p>Realçando o melhor do seu sorriso.<br>Rua Negrão de Lima, 51 — Alvorada, João Monlevade/MG, 35930-054.</p>
       <div class="sociais">
@@ -1441,7 +1684,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
         </a>
       </div>
     </div>
-    <div class="rv">
+    <div>
       <h4>Contato</h4>
       <ul class="rodape__lista">
         <li><a href="https://wa.me/5531972159568" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-zap"/></svg>WhatsApp (31) 97215-9568</a></li>
@@ -1451,7 +1694,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
         <li class="rodape__horario"><svg aria-hidden="true"><use href="#i-relogio"/></svg>Seg a sex, 9h–12h e 14h–18h</li>
       </ul>
     </div>
-    <div class="rv">
+    <div>
       <h4>Navegue</h4>
       <ul class="rodape__lista">
         <li><a href="#tratamentos">Tratamentos</a></li>
@@ -1478,13 +1721,27 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 </a>
 
 <!-- ====================================================================
-     Animacoes. Sem biblioteca: sao ~90 linhas de JS puro, e nenhuma delas
-     bloqueia a renderizacao (o script fica no fim do body).
+     Animacoes — TRES. Sem biblioteca, sem requisicao de rede, nada
+     bloqueando a renderizacao (o script fica no fim do body).
 
-     Regra que vale pras tres: se o JS nao rodar, a pagina continua completa
-     e legivel. A classe .js no <html> e o que liga o estado escondido; o
-     placar ja vem com os numeros finais escritos no HTML; e sem JS o
-     carrossel nao existe — os seis depoimentos ficam empilhados.
+     Historico: eram quatro, viraram duas em 19/08/2026 (reveal ao rolar e a
+     abertura do leque do Instagram saíram — escondiam conteudo ate a rolagem
+     chegar, e no celular isso lia como pagina que ainda esta carregando).
+     NA MESMA DATA, mais tarde, o usuario pediu a abertura do leque de volta,
+     sabendo do risco. O reveal ao rolar (que animava praticamente a pagina
+     inteira) CONTINUA fora — so o leque do Instagram voltou, que e uma secao
+     so e sempre foi o caso mais leve dos dois.
+
+     O CRITERIO que vale pra qualquer animacao nova alem dessas tres:
+     **animacao que esconde conteudo ate a pessoa rolar e arriscada** — foi o
+     motivo da queixa de "site lento no celular". O leque voltou como excecao
+     explicita, nao como reversao da regra.
+
+     Regra que vale pras tres: se o JS nao rodar, a pagina continua completa e
+     legivel. O placar ja vem com os numeros finais escritos no HTML, o leque
+     ja nasce com as classes de posicao final aplicadas por CSS (a classe
+     --entrando so entra via JS), e sem JS o carrossel nao existe — os seis
+     depoimentos ficam empilhados.
      ==================================================================== -->
 <script>
 (function(){
@@ -1493,31 +1750,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
   var semMovimento = !!(mq && mq.matches);
   var temObs = "IntersectionObserver" in window;
 
-  /* ---------- 1. aparecer ao rolar ---------- */
-  var alvos = Array.prototype.slice.call(document.querySelectorAll(".rv"));
-  if (!temObs || semMovimento) {
-    alvos.forEach(function(el){ el.classList.add("vis"); });
-  } else {
-    var obs = new IntersectionObserver(function(itens){
-      itens.forEach(function(it){
-        if (!it.isIntersecting) return;
-        var el = it.target;
-        /* Escalonar irmaos: cards da mesma linha entram em cascata em vez de
-           todos de uma vez. Teto de 6 pra ultima foto da galeria nao ficar
-           meio segundo atrasada. */
-        var irmaos = Array.prototype.filter.call(el.parentNode.children, function(n){
-          return n.classList && n.classList.contains("rv");
-        });
-        var i = irmaos.indexOf(el);
-        if (i > 0) el.style.transitionDelay = (Math.min(i, 6) * 120) + "ms";
-        el.classList.add("vis");
-        obs.unobserve(el);
-      });
-    }, { rootMargin: "0px 0px -14% 0px", threshold: 0.1 });
-    alvos.forEach(function(el){ obs.observe(el); });
-  }
-
-  /* ---------- 2. o placar que conta ---------- */
+  /* ---------- 1. o placar que conta ---------- */
   function formata(v, casas){
     return casas ? v.toFixed(casas).replace(".", ",") : String(Math.round(v));
   }
@@ -1550,7 +1783,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
     }
   }
 
-  /* ---------- 3. leque do instagram ---------- */
+  /* ---------- 2. leque do instagram ---------- */
   /* Os cinco cards saem empilhados no centro e abrem em leque quando a secao
      entra na tela. Sem JS, sem observador ou com "reduzir movimento" ligado
      eles ja nascem abertos — a animacao e reforco, nunca requisito. */
@@ -1570,7 +1803,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
     obsL.observe(leque);
   }
 
-  /* ---------- 4. carrossel dos depoimentos ---------- */
+  /* ---------- 3. carrossel dos depoimentos ---------- */
   var car = document.querySelector("[data-carrossel]");
   if (!car) return;
   var trilho = car.querySelector("[data-trilho]");
