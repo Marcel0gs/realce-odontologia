@@ -30,8 +30,12 @@
      preload — imagem de background so e descoberta depois que o CSS e
      analisado, tarde demais pro LCP. O `media` garante que cada aparelho baixe
      so a sua. -->
-<link rel="preload" as="image" href="assets/img/fachada-mobile.webp" media="(max-width: 700px)" fetchpriority="high">
-<link rel="preload" as="image" href="assets/img/palco-fachada.webp" media="(min-width: 701px)" fetchpriority="high">
+<!-- TESTE (19/08/2026): com o palco ligado no celular tambem (ver o <style>),
+     o fundo real em qualquer largura passou a ser palco-fachada.webp — entao
+     o preload virou incondicional e o de fachada-mobile.webp saiu (imagem
+     sem uso enquanto o teste durar; volta a fazer sentido se o hero mobile
+     voltar a ser estatico). -->
+<link rel="preload" as="image" href="assets/img/palco-fachada.webp" fetchpriority="high">
 
 <!-- ====================================================================
      CSS embutido de proposito, nao por preguica. Como arquivo externo ele
@@ -287,7 +291,6 @@ html.js .palco .palco__trilho{position:sticky;top:0;height:100vh}
   transform:scale(calc(1.2 * (1 - var(--p)) + 1 * var(--p)));
   transform-origin:50% 30%;will-change:transform;
 }
-@media (max-width:700px){.palco__midia img{object-position:50% 38%}}
 .palco__midia::after{
   content:"";position:absolute;inset:0;
   background:rgba(var(--veu),.34);opacity:calc(1 - var(--p));
@@ -400,139 +403,43 @@ html:not(.js) .palco__midia img{transform:none}
 html:not(.js) .palco__midia::after{opacity:.6}
 html:not(.js) .palco__nota{display:none}
 html:not(.js) .palco__final{opacity:1;pointer-events:auto}
-/* ============ NO CELULAR O PALCO NAO EXISTE ============
-   Ate 700px o hero e estatico: fachada de fundo, degrade por cima, texto
-   embaixo — o mesmo desenho do Caldas Coelho, e IDENTICO ao da variante B
-   (`site-topo-classico/`). A diferenca entre as duas variantes e so o
-   desktop; no celular as duas mostram exatamente isto.
+/* ============ TESTE (19/08/2026): PALCO LIGADO DE VOLTA NO CELULAR ============
+   Ate aqui (mesmo dia, mais cedo) o celular usava um hero ESTATICO — fachada
+   de fundo, degrade, texto embaixo — porque o percurso de scroll tinha dois
+   problemas: a fachada mobile de entao era uma composta borrada que aparecia
+   sozinha atras do card, E o percurso custava tres rolagens antes da pagina
+   comecar (o mesmo tipo de queixa que tirou os reveals do site inteiro).
 
-   POR QUE O PERCURSO SAIU DAQUI. Numa tela de celular ele cobrava tres
-   rolagens antes de a pagina comecar, e a fachada mobile de entao era
-   COMPOSTA — foto nitida colada sobre uma copia dela borrada, desenhada pra
-   ficar ATRAS do card da recepcao. Com o card ainda pequeno, no comeco do
-   percurso, a base borrada aparecia sozinha e lia como uma segunda imagem
-   fosca sem proposito.
+   O primeiro motivo caiu: a foto mobile foi trocada duas vezes (ver o
+   comentario do `.palco__midia img` la em cima) e a de agora nao tem mais
+   composta nem borrao. O segundo motivo — o custo de rolagem — CONTINUA
+   valendo em tese, e e por isso que isto e rotulado TESTE: o usuario pediu
+   pra ligar de novo e ver com as fotos novas antes de decidir.
 
-   ============ A FOTO DO CELULAR JA FOI TROCADA DUAS VEZES ============
+   O QUE ESTE BLOCO FAZIA E FOI REMOVIDO: toda a flatificacao do palco em
+   layout estatico (`.palco{height:auto}`, trilho virando coluna flex com a
+   foto em background, `.palco__fundo`/`.palco__midia` escondidos, titulo e
+   notas virando texto normal em vez de overlay). Com o bloco fora, o celular
+   agora roda EXATAMENTE o mesmo palco do desktop — mesmo <picture> de fundo
+   (`palco-fachada.webp`), mesmo card que abre (`palco-recepcao.webp`), mesmo
+   titulo com brilho dourado. So os ajustes de botao abaixo continuam, porque
+   sao sobre largura de tela, nao sobre a animacao.
 
-   PRIMEIRA TROCA (19/08/2026): a composta borrada virou `fachada-mobile.webp`,
-   uma foto REAL da fachada em RETRATO (1086x1448) fornecida pelo usuario.
-   Resolveu a composicao, mas a propria foto tinha um borrao marrom-escuro
-   (reflexo/sombra do vidro) que o usuario circulou num print e pediu pra
-   trocar.
-
-   SEGUNDA TROCA (19/08/2026, mesma data): entrou `Gemini_Generated_Image_
-   xi59u9...jpg`, imagem gerada/editada pelo usuario, QUADRADA na origem
-   (2048x2048) — sem o borrao. O arquivo final e um recorte 1350x2048 dessa
-   imagem (`crop=1350:2048:230:0`), centrado no letreiro, depois reduzido pra
-   820px de largura (820x1244). Sem correcao de cor: a imagem ja veio no tom
-   quente da paleta.
-
-   Foto horizontal num quadro de retrato nao tem espaco vazio: o assunto ocupa
-   a largura inteira e o texto cai sempre em cima de alguma coisa — por isso a
-   composta antiga (fundo com veu) nao funcionava, e por isso o recorte novo
-   preserva o quadro vertical: letreiro em cima, calcada embaixo, area limpa
-   onde o texto mora.
-
-   ⚠️⚠️ A ALTURA DO HERO E O QUE MANTEM O LETREIRO INTEIRO — a conta esta aqui
-   pra nao ter que refazer. Com `cover`, quanto MAIS ALTO o hero, mais a imagem
-   e ampliada pra cobrir a altura e mais largura ela perde nas laterais. Hero
-   alto = letreiro cortado, o contrario da intuicao.
-
-   Medido no arquivo de 820px de largura (apos o recorte): o letreiro vai de
-   x=42 a x=778 — 736px, 90% da largura, quase centrado (o recorte foi feito
-   de proposito em volta do centro do letreiro). A largura visivel da foto e
-   390 / (altura / 1244):
-
-       altura maxima sem nenhum corte = 1244 * 390 / 820 = 592px
-
-   O hero fica em `min(72vh,600px)` — 600px passa esse teto por 8px, ou seja
-   um corte de ~6px de cada lado. A margem ate a letra mais proxima (42px) e
-   sete vezes esse corte: folga grande, nao precisa mexer no teto de 600px.
-   **Se um dia trocar a foto de novo:** refazer o recorte centrado no letreiro
-   (nao so redimensionar) e reconferir essa conta com print a 390px. O
-   `background-position` horizontal virou `center` (era 27% na foto antiga,
-   descentrada) porque o recorte novo ja nasce com o letreiro no meio.
-
-   COMO, na marcacao: nao ha um segundo hero em HTML. A mesma marcacao vira
-   layout de fluxo — o trilho deixa de ser sticky, vira coluna flex alinhada
-   embaixo e RECEBE A FOTO COMO BACKGROUND; o `.palco__fundo` (que e o
-   <picture> da fachada do desktop) e o card da recepcao saem os dois. Todas as
-   propriedades que dependiam de --p ganham valor fixo. O JS pode continuar
-   escrevendo --p que nao muda nada — e nem escreve: com `height:auto` o curso
-   fica negativo e ele para em p=0 sozinho.
-
-   A ordem visual e montada por `order`, porque a ordem do HTML foi feita pro
-   palco: titulo, 4,9, chamada e botoes. */
+   ⚠️ SE A QUEIXA DE "PARECE LENTO" VOLTAR: o conserto documentado e reverter
+   pra este mesmo desenho estatico. O commit anterior a este tem o bloco
+   inteiro pronto (`git log` / `git show`) — e mais rapido recuperar de la do
+   que reescrever do zero. `fachada-mobile.webp` continua no repo sem uso
+   enquanto o teste durar, exatamente pra essa volta ser so colar o bloco de
+   volta, sem gerar imagem de novo. */
 @media (max-width:700px){
-  html.js .palco,.palco{height:auto}
-  html.js .palco .palco__trilho,.palco__trilho{
-    position:static;height:auto;overflow:visible;
-    display:flex;flex-direction:column;justify-content:flex-end;
-    min-height:min(72vh,600px);
-    padding:clamp(3rem,14vw,5rem) 1.25rem clamp(1.8rem,6vw,2.6rem);
-    background-image:
-      linear-gradient(180deg,rgba(var(--veu),0) 0%,rgba(var(--veu),.22) 26%,rgba(var(--veu),.62) 52%,rgba(var(--veu),.90) 100%),
-      url("assets/img/fachada-mobile.webp"),
-      linear-gradient(160deg,#5A4638 0%,#3B2E26 45%,#2A2019 100%);
-    background-size:cover,cover,cover;
-    background-position:center,center top,center;
-  }
-  /* O <picture> da fachada do desktop, o card da recepcao e o veu do rodape
-     sao todos pecas do percurso. Sem percurso, saem os tres — a fachada do
-     celular entra por background acima. A recepcao continua no site, na
-     galeria. */
-  .palco__fundo,.palco__midia,.palco__trilho::after{display:none}
-
-  /* ⚠️ O `place-items:start` NAO e redundante — sem ele o titulo fica 30px
-     mais pra dentro que todo o resto do bloco, e o desalinhamento e sutil o
-     bastante pra passar batido num print.
-     Por que: a regra base do palco tem `display:grid;place-items:center`. Aqui
-     o display vira `block`, e a intuicao diz que o alinhamento de grid morre
-     junto — mas nao morre. `justify-items` TAMBEM se aplica a container block
-     (Box Alignment nivel 3, e o Chrome implementa): ele faz cada filho de
-     bloco encolher pro proprio conteudo e centralizar. Os spans do titulo
-     ficavam com 290px de largura dentro de 350px, centrados. `text-align:left`
-     nao resolve porque o problema nao e o texto dentro da caixa — e a caixa. */
-  .palco__titulo{position:static;display:block;place-items:start;order:2;text-align:left;pointer-events:auto}
-  .palco__titulo::before{display:none}
-  /* Duas linhas de verdade, nao dois spans sobrepostos em grid. E sem o
-     brilho dourado varrendo: e animacao de palco, e aqui nao ha palco. */
-  .palco__meia{
-    display:block;transform:none;white-space:normal;
-    font-size:clamp(1.9rem,8.4vw,2.9rem);
-    animation:none;background-image:none;
-    -webkit-text-fill-color:#fff;color:#fff;
-    text-shadow:0 2px 20px rgba(0,0,0,.55);
-  }
-  .palco__nota{position:static;transform:none;white-space:normal;font-size:.85rem}
-  .palco__nota--esq{order:3;margin-top:.9rem}
-  /* A linha do local SAI no celular, por dois motivos que se somam:
-     1. como selo acima do titulo ela encostava na linha "ODONTOLOGIA
-        INTEGRADA" do letreiro — texto sobre texto, e o do letreiro e o mais
-        bonito dos dois;
-     2. e informacao repetida: a faixa de credenciais, imediatamente abaixo do
-        hero, ja traz "Rua Negrao de Lima, 51 · Alvorada, Joao Monlevade" por
-        escrito, e ainda existe a secao "Onde fica" com mapa.
-     Os pixels que ela ocupava viraram respiro entre o letreiro e o titulo.
-     ("Role para entrar ↓" ja nao fazia sentido sem percurso de qualquer
-     forma — e o span .palco__rolar.) */
-  .palco__nota--dir{display:none}
-  .palco__final{
-    position:static;order:4;opacity:1;pointer-events:auto;
-    margin-top:1.4rem;padding:0;text-align:left;
-  }
-  /* O peso do paragrafo desce de 600 pra 500 porque sobre foto o negrito em
-     duas linhas fica pesado — sobre o desktop ele fica, que la e uma linha
-     so no meio de muito espaco. */
-  .palco__final p{font-weight:500;margin-bottom:0}
   /* ⚠️ LADO A LADO, NAO EMPILHADO — mudou por pedido do usuario depois de ver
      a versao cheia (cada botao numa linha). Os dois dividem a largura igual
      (flex:1 1 0) em vez de cada um tomar a linha inteira.
      O clamp() no font-size e o que segura isso em telas de ~320-360px: sem
      ele, "Agendar avaliacao" com o icone e mais largo que a metade da tela
      nesses aparelhos, e como white-space e nowrap (pra nao quebrar a pilula
-     em duas linhas), o texto estouraria a borda em vez de quebrar. */
+     em duas linhas), o texto estouraria a borda em vez de quebrar. Isto vale
+     tanto no palco animado quanto no estatico — nao faz parte do teste acima. */
   .palco__acoes{gap:.5rem;flex-wrap:nowrap}
   .palco__acoes .btn{flex:1 1 0;justify-content:center;white-space:nowrap}
   .palco__acoes .btn--peq{padding:.58rem .5rem;font-size:clamp(.72rem,3.6vw,.85rem);gap:.35rem}
