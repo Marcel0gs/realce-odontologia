@@ -3,17 +3,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- Marca que ha JS ANTES do CSS pintar. Depois que os reveals sairam
-     (19/08/2026) restaram dois usos, e os dois continuam precisando disso
-     aqui, no topo do <head>: a altura de 200vh do palco — se fosse posta por
-     script depois, a pagina pintaria com o hero baixo e ele cresceria em
-     seguida, empurrando tudo (CLS) — e o preenchimento das estrelas do placar.
-     Sem a classe (JS desligado, script com erro, leitor antigo) a pagina
-     aparece inteira e legivel, sem depender de nada. -->
+<!-- Marca que ha JS ANTES do CSS pintar. Ela serve a dois usos, e os dois sao
+     do mesmo tipo: coisa que nasce incompleta e so pode nascer assim onde
+     existe script pra completar.
+       1. o preenchimento das estrelas do placar, que nasce em width:0;
+       2. a barra do topo invisivel sobre a fachada, que so pode ficar sem
+          fundo se houver quem devolva o creme na rolagem.
+     Sem a classe (JS desligado, script com erro, leitor antigo) as estrelas ja
+     aparecem cheias e a barra ja aparece creme — a pagina fica inteira e
+     legivel, so sem o efeito. -->
 <script>document.documentElement.className+=" js";</script>
 
 <title>Realce Odontologia Integrada — dentista e ortodontista em João Monlevade/MG</title>
 <meta name="description" content="Clínica odontológica na Rua Negrão de Lima, 51 — Alvorada, João Monlevade/MG. Ortodontia, clareamento, implantes, limpeza e restaurações com a Dra. Fernanda Magalhães, CRO-MG 44763. 4,9 no Google. Atendemos PASA e IPSM.">
+<!-- ⚠️ ESTE E O SITE, ponto. Ate 19/08/2026 ele foi a "variante B" e vivia em
+     `site-topo-classico/`, com noindex e um repo separado, so pra comparar com
+     a variante do palco animado. O usuario escolheu esta, e ela mudou de pasta
+     pra ca — o noindex saiu junto, a variante perdedora foi apagada e o repo
+     dela tambem. Nao existe mais comparacao em andamento.
+     O canonical aponta pro GitHub Pages porque e a URL que o Google indexa; o
+     endereco .netlify.app e vitrine de apresentacao e nao entra aqui. -->
 <link rel="canonical" href="https://marcel0gs.github.io/realce-odontologia/">
 <meta name="theme-color" content="#FDF8F2">
 
@@ -24,19 +33,17 @@
 <meta property="og:locale" content="pt_BR">
 
 <link rel="icon" href="assets/img/favicon.png" type="image/png">
-<!-- A fachada e o LCP nas duas larguras, e sao DUAS FOTOS DIFERENTES: no
-     desktop a horizontal retocada, que o palco usa como fundo do percurso; no
-     celular a vertical real, que entra por url() no CSS. As duas precisam de
-     preload — imagem de background so e descoberta depois que o CSS e
-     analisado, tarde demais pro LCP. O `media` garante que cada aparelho baixe
-     so a sua. -->
-<!-- TESTE (19/08/2026, rodada 2): a <picture> do palco voltou a ter <source>
-     mobile (fachada-mobile.webp), entao o preload volta a ser dividido por
-     media, igual era no hero estatico — senão o celular preloadaria a foto
-     ERRADA (a horizontal, que ele nem usa mais) e a imagem real (LCP) ficaria
-     sem preload. -->
-<link rel="preload" as="image" href="assets/img/fachada-mobile.webp" media="(max-width: 700px)" fetchpriority="high">
-<link rel="preload" as="image" href="assets/img/palco-fachada.webp" media="(min-width: 701px)" fetchpriority="high">
+<!-- A fachada e o LCP desta pagina: e a primeira coisa que pinta e a maior.
+     O preload com fetchpriority alto existe porque ela entra por `url()` no
+     CSS, e imagem de background so e descoberta depois que o CSS e analisado —
+     tarde demais. Duas versoes, uma vertical pro celular: num quadro de
+     retrato o corte central de uma foto horizontal come o assunto inteiro. -->
+<!-- As DUAS versoes entram por url() dentro do CSS, e imagem de background so e
+     descoberta depois que o CSS e analisado — tarde demais pro LCP. Por isso as
+     duas levam preload, cada uma presa ao seu media: o navegador baixa so a que
+     serve a tela dele, nunca as duas. -->
+<link rel="preload" as="image" href="assets/img/fachada-topo.webp" media="(min-width: 701px)" fetchpriority="high">
+<link rel="preload" as="image" href="assets/img/fachada-topo-mobile.webp" media="(max-width: 700px)" fetchpriority="high">
 
 <!-- ====================================================================
      CSS embutido de proposito, nao por preguica. Como arquivo externo ele
@@ -77,6 +84,11 @@
   --borda:#E6DCCB;
   --raio:14px;
   --raio-g:22px;
+  /* Altura da barra do topo. Vive numa variavel porque o hero precisa dela
+     DUAS vezes: uma pra subir por baixo da barra (margin-top negativa) e outra
+     pra devolver o espaco por dentro (padding-top). Mexeu no min-height do
+     .topo__linha, mexe aqui junto — senao o titulo sobe pra debaixo da logo. */
+  --topo-h:74px;
   --sombra:0 1px 2px rgba(59,46,38,.05), 0 10px 30px rgba(59,46,38,.09);
 }
 
@@ -154,7 +166,15 @@ h3{font-size:1.18rem}
    rolagem e quebraria o sticky do topo. */
 .secao{padding:clamp(3.5rem,8vw,6rem) 0;overflow-x:clip}
 .secao--creme{background:var(--creme)}
-.secao--sage{background:var(--sage-claro)}
+/* ⚠️ A SECAO DE AVALIACOES NAO E MAIS VERDE — pedido do usuario em 19/08/2026,
+   na revisao final antes de apresentar a cliente. Era `--sage-claro` (o verde
+   da parede da sala de espera) e virou `--areia`, que e a areia amostrada da
+   mesma identidade.
+   Nao trocar por `--creme` nem por branco: a secao de cima (a clinica) ja e
+   creme e os cards de dentro sao BRANCOS. Com fundo creme a secao emenda com a
+   de cima; com fundo branco os cards somem no fundo. A areia e o unico tom da
+   paleta que resolve os dois de uma vez. */
+.secao--areia{background:var(--areia)}
 .secao--escura{background:var(--marrom);color:#F0E9DF}
 .secao--escura h2,.secao--escura h3{color:#fff}
 .secao--escura .chamada{color:#CFC2B4}
@@ -191,20 +211,65 @@ h3{font-size:1.18rem}
 /* ====================== topo ======================
    O fundo do topo e exatamente o creme do arquivo da logo, pra que o
    recorte retangular da logo se dissolva na barra em vez de aparecer
-   como um bloco. Mexer numa cor sem mexer na outra faz a emenda aparecer. */
+   como um bloco. Mexer numa cor sem mexer na outra faz a emenda aparecer.
+
+   ============ A BARRA FICA INVISIVEL EM CIMA DA FACHADA ============
+   Modelo do Belloni Motors, trazido pelo usuario em 19/08/2026: a foto do hero
+   sobe por baixo do topo e ocupa a tela inteira, entao a barra nao pode ter
+   fundo enquanto estiver ali. Depois que a pessoa rola 24px, o creme volta.
+
+   ⚠️ O ESTADO PADRAO E O CREME, NAO O TRANSPARENTE — e de proposito. Quem
+   entra sem JS (script com erro, leitor antigo) recebe a barra creme desde o
+   primeiro pixel: feia sobre a foto, mas legivel. Se o padrao fosse
+   transparente, o mesmo visitante ficaria com logo branca sobre parede bege e
+   menu invisivel. Por isso o transparente esta preso em `.js .topo`, que so
+   existe quando o script do <head> rodou, e o creme volta com `.topo--rolado`.
+
+   ⚠️ A LOGO SAO DUAS IMAGENS, nao uma. O arquivo original e dourado sobre um
+   retangulo CREME OPACO — sobre a foto ele apareceria como um bloco claro.
+   `logo-branca.webp` e o mesmo desenho em branco com fundo transparente,
+   gerado do proprio arquivo (alfa tirado da luminancia). As duas ficam
+   empilhadas e trocam por opacidade. Se um dia a logo mudar, refazer as
+   DUAS — senao a barra troca de marca no meio da rolagem. */
 .topo{
   position:sticky;top:0;z-index:60;
   background:rgba(253,248,242,.95);
   backdrop-filter:blur(8px);
   border-bottom:1px solid var(--borda);
+  transition:background .28s ease,border-color .28s ease;
+}
+.js .topo{background:transparent;backdrop-filter:none;border-bottom-color:transparent}
+.js .topo--rolado{
+  background:rgba(253,248,242,.95);
+  backdrop-filter:blur(8px);
+  border-bottom-color:var(--borda);
 }
 .topo__linha{display:flex;align-items:center;gap:1rem;min-height:74px}
-.marca{display:flex;align-items:center;flex:none;text-decoration:none}
-.marca img{width:auto;height:42px}
+.marca{position:relative;display:flex;align-items:center;flex:none;text-decoration:none}
+.marca img{width:auto;height:42px;transition:opacity .28s ease}
+/* A sombra e obrigatoria, nao enfeite: a logo branca cai justo em cima da
+   parede BEGE CLARA da fachada, e sem ela o desenho some. O fio escuro no topo
+   do hero ajuda, mas sozinho nao resolve. */
+.marca__branca{
+  position:absolute;left:0;top:50%;transform:translateY(-50%);opacity:0;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.55)) drop-shadow(0 2px 14px rgba(0,0,0,.45));
+}
+.js .topo:not(.topo--rolado) .marca__ouro{opacity:0}
+.js .topo:not(.topo--rolado) .marca__branca{opacity:1}
 .menu{display:none;margin-left:auto;gap:1.5rem}
-.menu a{text-decoration:none;font-size:.94rem;color:var(--texto-suave)}
+/* O padding vertical existe pelo Lighthouse, nao pelo desenho: link de menu
+   com 26px de altura reprova em "tap targets are not sized appropriately"
+   (o minimo e 48px). Como a barra ja tem 74px, o recuo cabe sem mudar nada
+   visualmente. Mesma logica nos pontos do carrossel e na lista do rodape. */
+.menu a{
+  display:flex;align-items:center;min-height:48px;
+  text-decoration:none;font-size:.94rem;color:var(--texto-suave);transition:color .28s ease;
+}
 .menu a:hover{color:var(--dourado)}
+.js .topo:not(.topo--rolado) .menu a{color:rgba(255,255,255,.92);text-shadow:0 1px 10px rgba(0,0,0,.5)}
+.js .topo:not(.topo--rolado) .menu a:hover{color:#fff}
 .topo__cta{margin-left:auto;padding:.62rem 1.2rem;font-size:.92rem}
+.js .topo:not(.topo--rolado) .topo__cta{box-shadow:0 6px 22px rgba(0,0,0,.3)}
 @media (min-width:1000px){
   .menu{display:flex}
   .topo__cta{margin-left:1.5rem}
@@ -214,287 +279,258 @@ h3{font-size:1.18rem}
   .topo__cta{padding:.55rem 1rem;font-size:.85rem}
 }
 
-/* ====================== hero "palco" ======================
-   Componente templates/componentes/hero-abre-com-scroll.html — o mesmo do
-   Rancho Canaa e da GeP Lavanderia. Aqui a historia e "da rua pra dentro":
-   o fundo e a fachada, o card e a recepcao, e rolar abre a clinica.
+/* ====================== hero ======================
+   Foto de fundo ocupando a tela, veu por cima, texto embaixo — parado, sem
+   percurso de rolagem, sem JS proprio. A primeira tela ja e a tela final: a
+   pessoa chega, le a frase, ve o 4,9 e o botao.
 
-   Uma variavel so, --p, indo de 0 a 1 conforme o scroll dentro da secao.
-   Todo o resto e interpolacao em CSS a partir dela. O JS nao anima nada —
-   ele so escreve o numero.
+   ⚠️ HOUVE UM PALCO ANIMADO AQUI, e ele PERDEU. Ate 19/08/2026 esta pasta
+   tinha um hero de 200vh que abria a clinica conforme a pessoa rolava. Foi
+   comparado lado a lado com este e o usuario escolheu este, com estas
+   palavras: "ficou nota 10000". Nao reintroduzir o palco sem ele pedir.
 
-   TRES COISAS QUE PARECEM DETALHE E NAO SAO:
+   O desenho e o do Caldas Coelho: `display:flex` com `align-items:flex-end`,
+   conteudo alinhado a esquerda, selo de endereco em pilula, h1 serifado,
+   chamada, botoes. A adaptacao local e a linha do 4,9 · 105, que no Caldas nao
+   existe (la sao 6 avaliacoes; aqui sao 105 e e o maior ativo do cliente).
 
-   1. A ALTURA DE 200vh VEM DA CLASSE .js NO <html>, marcada pelo script de
-      uma linha no topo do <head>. Se a altura fosse posta por script no fim
-      da secao, num aparelho lento a pagina pintaria com o hero baixo e logo
-      depois ele cresceria, empurrando tudo abaixo — deslocamento de layout
-      que o PageSpeed cobra caro (CLS).
-   2. AS MEDIDAS DO PERCURSO FICAM EM CACHE no script. Ler offsetHeight a
-      cada frame, logo depois de ter escrito --p no frame anterior, obriga o
-      navegador a recalcular layout na hora. E o vaivem que engasga o scroll
-      no celular.
-   3. SEM will-change EM width/height. will-change so ajuda em propriedade
-      que o compositor anima sozinho (transform, opacity); em width/height
-      nao promove camada nenhuma e ainda reserva memoria. Usa-se `contain`.
+   A FOTO ENTRA POR CSS, NAO POR <img>, e isso e de proposito: e o mesmo padrao
+   do Caldas. O degrade fica na MESMA propriedade `background-image`, empilhado
+   por cima da foto, e embaixo de tudo vai um degrade de cor solida. Se a foto
+   faltar ou ainda nao estiver convertida, o hero continua sendo um bloco
+   marrom legivel com o texto em cima — nunca um retangulo quebrado.
 
-   ⚠️ A ORDEM IMPORTA: este CSS tem que estar aplicado ANTES do script rodar.
-   O script mede o percurso uma vez e guarda; se rodar antes do CSS aplicar
-   os 200vh, mede errado e a animacao nunca fecha — o card cresce ate o meio
-   e para. Por isso o CSS fica aqui, no <head>, e o script no fim da secao. */
-.palco{
-  --cor-texto:#fff;--cor-nota:#F4E9D8;--cor-nota2:#D6C6AE;
-  --veu:59,46,38;                        /* var(--marrom) em RGB */
-  --p:0;
-  --w0:clamp(240px,25vw,400px);
-  --h0:min(calc(var(--w0) * 1.34),62vh);
-  --saida:200vw;
-  position:relative;height:min(94vh,760px);
-  background:var(--marrom);color:var(--cor-texto);
+   ========= REFEITO EM 19/08/2026 NO MODELO DO BELLONI MOTORS =========
+   O usuario trouxe dois prints (desktop e celular) de um site de seminovos e
+   pediu a mesma mecanica de topo. Tres coisas mudaram, e as tres juntas sao o
+   efeito — mexer numa so nao chega la:
+
+   1. A FOTO OCUPA A TELA INTEIRA, inclusive por baixo da barra do topo. Dai a
+      dupla `margin-top:calc(-1 * var(--topo-h))` + o mesmo valor somado ao
+      padding-top: a secao sobe pra debaixo da barra e devolve o espaco por
+      dentro, pra o texto nao nascer coberto. E `100svh`, nao `100vh`: no
+      celular o vh conta a barra de endereco que ainda vai sumir, e os botoes
+      nasceriam abaixo da dobra.
+
+   2. O VEU DEIXOU DE SER UMA CORTINA. Antes era um degrade de cima a baixo em
+      TODA a largura (.20 -> .86), o que apagava a foto inteira. Agora sao tres
+      camadas com funcoes separadas: uma ELIPSE ancorada no canto de baixo a
+      esquerda, que escurece so onde o texto mora; uma faixa rasteira de
+      contraste na base; e um fio escuro no topo, so pra logo e menu terem onde
+      se apoiar. O miolo e o alto da direita ficam com a foto limpa — que e
+      exatamente o que o usuario pediu ("no resto, a imagem ficou mais clara e
+      com detalhes").
+
+   3. A FOTO E OUTRA: `fachada-topo.webp`, gerada de `afafdasfase.png` (a
+      fachada horizontal de 2048x1504, com o letreiro inteiro e legivel).
+      Substituiu a `palco-fachada.webp`.
+
+   O `background-position` vertical e `center 8%` de proposito: com o hero na
+   tela inteira, o corte de `cover` tira altura, e o letreiro fica na parte de
+   CIMA da foto. Ancorar perto do topo mantem o letreiro logo abaixo da barra;
+   `center` puro empurraria ele pra debaixo da logo. */
+.hero{
+  position:relative;
+  display:flex;align-items:flex-end;
+  min-height:100vh;
+  min-height:100svh;
+  margin-top:calc(-1 * var(--topo-h));
+  padding:calc(var(--topo-h) + clamp(4rem,10vw,6rem)) 0 clamp(2.8rem,6vw,4.5rem);
+  background-image:
+    /* 1. o canto do texto — elipse grande ancorada embaixo, a esquerda */
+    radial-gradient(118% 96% at 4% 106%,
+      rgba(26,18,12,.93) 0%, rgba(26,18,12,.78) 22%, rgba(26,18,12,.46) 46%,
+      rgba(26,18,12,.15) 68%, rgba(26,18,12,0) 86%),
+    /* 2. base rasteira, largura toda: assenta o bloco e emenda com a secao
+          de credenciais que vem logo abaixo */
+    linear-gradient(0deg, rgba(26,18,12,.58) 0%, rgba(26,18,12,.20) 13%, rgba(26,18,12,0) 32%),
+    /* 3. fio no topo, so pelo contraste da logo branca e do menu */
+    linear-gradient(180deg, rgba(18,12,8,.60) 0%, rgba(18,12,8,.40) 6%, rgba(18,12,8,.12) 13%, rgba(18,12,8,0) 24%),
+    url("assets/img/fachada-topo.webp"),
+    linear-gradient(160deg,#5A4638 0%,#3B2E26 45%,#2A2019 100%);
+  background-size:cover,cover,cover,cover,cover;
+  background-position:center,center,center,center 8%,center;
+  background-repeat:no-repeat;
+  color:#fff;
 }
-html.js .palco{height:200vh}
-.palco__trilho{position:relative;height:100%;overflow:hidden}
-html.js .palco .palco__trilho{position:sticky;top:0;height:100vh}
-.palco__fundo{
-  position:absolute;inset:0;z-index:0;
-  transform:scale(calc(1.08 * (1 - var(--p)) + 1 * var(--p)));
-  will-change:transform;
+
+/* O tamanho do letreiro em telas ALTAS e estreitas (janela de desktop
+   arrastada pra metade, tablet deitado curto): ali `cover` corta pelas
+   laterais e o letreiro comeca a perder as pontas. Puxar a ancora pro centro
+   e reduzir a altura minima devolve largura visivel. */
+@media (min-width:701px) and (max-aspect-ratio:5/4){
+  .hero{min-height:min(92svh,820px);background-position:center,center,center,center 4%,center}
 }
-.palco__fundo picture{display:block;width:100%;height:100%}
-.palco__fundo img{width:100%;height:100%;object-fit:cover}
-/* No celular esse `cover` vira `contain` (ver o @media la embaixo, junto do
-   resto dos ajustes do teste) — motivo detalhado no comentario HTML da
-   propria <picture>. */
-.palco__fundo::after{
-  content:"";position:absolute;inset:0;
-  background:linear-gradient(180deg,rgba(var(--veu),.30) 0%,rgba(var(--veu),.72) 100%);
-  opacity:calc(.85 * (1 - var(--p)) + 1 * var(--p));
+
+.hero h1{
+  max-width:20ch;margin:0;
+  font-size:clamp(2.1rem,5.6vw,3.5rem);
+  text-shadow:0 2px 24px rgba(0,0,0,.5),0 1px 3px rgba(0,0,0,.35);
 }
-.palco__midia{
-  position:absolute;top:50%;left:50%;z-index:2;
-  display:block;overflow:hidden;transform:translate(-50%,-50%);
-  width:calc(var(--w0) * (1 - var(--p)) + 100% * var(--p));
-  height:calc(var(--h0) * (1 - var(--p)) + 100% * var(--p));
-  border-radius:calc(18px * (1 - var(--p)));
-  box-shadow:0 26px 70px rgba(0,0,0,calc(.55 * (1 - var(--p))));
-  contain:layout paint;
+.hero__selo{
+  display:inline-flex;align-items:center;gap:.5rem;
+  margin-bottom:1.1rem;padding:.4rem .9rem;border-radius:999px;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.26);
+  font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:#F4E9D8;
 }
-/* O zoom inicial existe porque num card pequeno o plano aberto vira detalhe
-   distante. 1.2 e nao 1.4 (que e o do Rancho): a foto e mais fechada e a logo
-   na parede sai do quadro se apertar mais. O object-position puxa o
-   enquadramento pra cima — o assunto e a logo, nao o piso.
-   Foto trocada em 19/08/2026 (segunda vez) — a nova (watermarked_img_...,
-   fornecida pelo usuario) e RETRATO (912x1170), enquanto a antiga era
-   paisagem. A logo nesta fica centrada em ~42% da largura e ~30% da altura;
-   42%/30% substitui o antigo 22%/45%. Card fechado (p=0, aspect 1.34)
-   praticamente nao corta a foto — so ~1.5% de cada lado. Aberto (p=1, aspect
-   de viewport tipico ~0.56-0.63) o corte e vertical e sobra a faixa
-   logo+flor+balcao, exatamente o que o object-position:30% garante. */
-.palco__midia img{
-  width:100%;height:100%;object-fit:cover;object-position:42% 30%;
-  transform:scale(calc(1.2 * (1 - var(--p)) + 1 * var(--p)));
-  transform-origin:50% 30%;will-change:transform;
+.hero__selo svg{width:14px;height:14px;fill:currentColor;flex:none}
+@media (max-width:700px){.hero__rua{display:none}}
+/* A nota fica ENTRE o h1 e a chamada, e nao no rodape do bloco: 4,9 em 105
+   avaliacoes e o argumento mais forte da pagina e nao pode disputar atencao
+   com os botoes. Logo abaixo do titulo ele e a segunda coisa lida. */
+.hero__nota{
+  margin:1.1rem 0 0;font-size:.95rem;font-weight:600;color:#F4E9D8;
+  text-shadow:0 2px 14px rgba(0,0,0,.55);
 }
-.palco__midia::after{
-  content:"";position:absolute;inset:0;
-  background:rgba(var(--veu),.34);opacity:calc(1 - var(--p));
+.hero__nota b{color:#fff}
+.hero__nota .estrelas{color:#E8C46B;letter-spacing:.06em}
+.hero__sub{
+  max-width:50ch;margin:.9rem 0 0;
+  font-size:clamp(1rem,2.1vw,1.12rem);color:#E9DFD2;
+  text-shadow:0 1px 12px rgba(0,0,0,.45);
 }
-/* Sombra no rodape do palco. No fim do percurso o veu sobre o card ja chegou
-   a zero — a foto fica limpa, e e justamente onde entram a frase e os botoes.
-   Sobre balcao branco e piso claro o texto perdia contraste. Este degrade
-   entra junto com o bloco final e so na faixa de baixo, entao nao suja a foto
-   nem atrapalha a abertura. */
-.palco__trilho::after{
-  content:"";position:absolute;left:0;right:0;bottom:0;height:52%;z-index:3;
-  pointer-events:none;
-  background:linear-gradient(to top,
-    rgba(var(--veu),.92) 0%, rgba(var(--veu),.6) 42%, rgba(var(--veu),0) 100%);
-  opacity:clamp(0,calc((var(--p) - .62) * 3.2),1);
-}
-html:not(.js) .palco__trilho::after{opacity:1}
-.palco__titulo{position:absolute;inset:0;z-index:3;margin:0;display:grid;place-items:center;pointer-events:none}
-/* Scrim SO atras do titulo, e nao veu mais forte nas duas fotos.
-   Diferenca em relacao ao Rancho: la o fundo e um por do sol, escuro por
-   natureza, e o titulo branco saltava sozinho. Aqui as duas fotos sao claras
-   — fachada bege ao sol e recepcao de parede branca — e escurecer as duas pra
-   dar contraste ao titulo apagaria justamente o que a secao existe pra
-   mostrar. O degrade radial resolve so onde o problema esta e some junto com
-   o titulo, entao a foto final chega limpa. */
-.palco__titulo::before{
-  content:"";position:absolute;inset:0;
-  background:radial-gradient(ellipse 64% 40% at 50% 50%,
-    rgba(var(--veu),.80) 0%, rgba(var(--veu),.46) 55%, rgba(var(--veu),0) 100%);
-  opacity:calc(1 - var(--p));
-}
-.palco__meia{
-  grid-area:1/1;color:var(--cor-texto);white-space:nowrap;
-  font-family:Georgia,"Times New Roman",serif;font-weight:400;
-  font-size:clamp(2.5rem,8.2vw,5.4rem);letter-spacing:-.02em;line-height:1.1;
-  text-shadow:0 2px 16px rgba(0,0,0,.72),0 1px 3px rgba(0,0,0,.45);will-change:transform;
-}
-/* Brilho varrendo o titulo: e so um degrade recortado no texto, com a posicao
-   do fundo animada. Dentro de @supports porque o preenchimento transparente
-   so pode existir onde o recorte no texto funciona; sem isso o titulo sumiria.
-   O text-shadow continua sendo pintado a partir do contorno da letra, entao a
-   legibilidade sobre a foto nao se perde. A base e o --dourado-claro da marca,
-   apagada o bastante pra faixa branca aparecer. */
-@supports ((-webkit-background-clip:text) or (background-clip:text)){
-  .palco__meia{
-    /* O degrade REPETE e as duas pontas sao a mesma cor — assim ele ladrilha
-       sem emenda. Com no-repeat e a posicao saindo do alcance sobrava area sem
-       fundo nenhum, e como o preenchimento da letra e transparente, a letra
-       sumia. A varredura anda exatamente um ladrilho (0% → 200% com fundo de
-       200%), entao volta ao ponto de partida sem salto e sem buraco. */
-    background-image:linear-gradient(100deg,
-      #C9A96A 0%, #C9A96A 38%,
-      #FFF6E8 47%, #FFFFFF 50%, #FFF6E8 53%,
-      #C9A96A 62%, #C9A96A 100%);
-    background-size:200% 100%;background-repeat:repeat;
-    -webkit-background-clip:text;background-clip:text;
-    -webkit-text-fill-color:transparent;color:transparent;
-    animation:brilho-titulo 3.5s ease-in infinite;
+/* Mesma logica do .secao--escura .btn--linha: o botao de contorno nasceu pra
+   fundo creme e sobre foto precisa da versao clara. */
+.hero .btn--linha{color:#fff;border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.07)}
+.hero .btn--linha:hover{background:rgba(255,255,255,.18);border-color:#fff;color:#fff}
+
+.hero__acoes{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.8rem}
+
+/* Dica de rolagem na lateral direita, em pe — tambem do modelo do Belloni.
+   Existe porque o hero agora toma a tela inteira: sem ela, a primeira tela
+   parece uma imagem de abertura e nao uma pagina que continua. Fica so onde
+   ha espaco de sobra (>=1000px), do lado CLARO da foto, longe do texto. E
+   decorativa: `aria-hidden` no HTML, some com "reduzir movimento" desligado
+   ou nao — nao carrega informacao que falte em outro lugar. */
+.hero__rolar{display:none}
+@media (min-width:1000px){
+  .hero__rolar{
+    display:flex;align-items:center;gap:.9rem;
+    position:absolute;right:clamp(1rem,2.4vw,2.2rem);bottom:clamp(2.5rem,6vw,4rem);
+    writing-mode:vertical-rl;
+    font-size:.68rem;letter-spacing:.26em;text-transform:uppercase;
+    color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7),0 2px 16px rgba(0,0,0,.6);
+  }
+  .hero__rolar::after{
+    content:"";width:2px;height:64px;border-radius:2px;
+    background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,0));
+    box-shadow:0 1px 8px rgba(0,0,0,.5);
   }
 }
-@keyframes brilho-titulo{
-  from{background-position:200% 0}
-  to{background-position:0 0}
-}
-/* Passado o percurso o titulo ja saiu de cena — parar aqui evita repintura
-   continua no resto da pagina. A classe e ligada pelo script do hero. */
-.palco--fim .palco__meia{animation-play-state:paused}
-/* Sem animacao a base apagada nao faz sentido — o titulo volta a ser branco
-   solido, que e a versao legivel de sempre. */
-@media (prefers-reduced-motion:reduce){
-  .palco__meia{
-    animation:none;background-image:none;
-    -webkit-text-fill-color:#fff;color:#fff;
-  }
-}
-.palco__meia--esq{transform:translate(calc(var(--p) * var(--saida) * -1),-.62em)}
-.palco__meia--dir{transform:translate(calc(var(--p) * var(--saida)),.62em)}
-/* A nota da esquerda carrega o 4,9 de 105 avaliacoes. Ele fica ABAIXO do card,
-   visivel desde o primeiro quadro: e o maior ativo da clinica e nao pode
-   depender de a pessoa rolar ate o fim do percurso pra aparecer. */
-.palco__nota{
-  position:absolute;left:50%;z-index:1;margin:0;
-  top:calc(50% + var(--h0) / 2 + 1.2rem);
-  font-size:.92rem;font-weight:600;color:var(--cor-nota);
-  white-space:nowrap;text-shadow:0 2px 14px rgba(0,0,0,.6);pointer-events:none;
-}
-.palco__nota b{font-weight:700;color:#fff}
-.palco__nota .estrelas{color:#E8C46B;letter-spacing:.06em}
-.palco__nota--esq{transform:translateX(calc(-50% - var(--p) * var(--saida)))}
-.palco__nota--dir{
-  top:calc(50% + var(--h0) / 2 + 3.1rem);font-size:.8rem;color:var(--cor-nota2);
-  transform:translateX(calc(-50% + var(--p) * var(--saida)));
-}
-.palco__final{
-  position:absolute;z-index:4;left:0;right:0;bottom:clamp(2.5rem,9vh,6rem);
-  text-align:center;padding:0 1.25rem;
-  opacity:clamp(0,calc((var(--p) - .72) * 4),1);pointer-events:none;
-}
-.palco--fim .palco__final{pointer-events:auto}
-.palco__final p{margin:0 0 1.1rem;font-weight:600;color:var(--cor-texto);text-shadow:0 2px 18px rgba(0,0,0,.55)}
-.palco__acoes{display:flex;flex-wrap:wrap;gap:.75rem;justify-content:center}
-/* O botao de contorno nasceu pra fundo creme: sobre foto ele precisa da versao
-   clara, mesma logica do .secao--escura .btn--linha. */
-.palco .btn--linha{color:#fff;border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.07)}
-.palco .btn--linha:hover{background:rgba(255,255,255,.18);border-color:#fff;color:#fff}
-/* Sem JS nao ha percurso: o card ja nasce ocupando a tela, o titulo fica
-   parado no meio e o bloco final aparece. A pagina nao depende do efeito. */
-html:not(.js) .palco__midia{width:100%;height:100%;border-radius:0;box-shadow:none}
-html:not(.js) .palco__midia img{transform:none}
-html:not(.js) .palco__midia::after{opacity:.6}
-html:not(.js) .palco__nota{display:none}
-html:not(.js) .palco__final{opacity:1;pointer-events:auto}
-/* ============ TESTE (19/08/2026): PALCO LIGADO DE VOLTA NO CELULAR ============
-   Ate aqui (mesmo dia, mais cedo) o celular usava um hero ESTATICO — fachada
-   de fundo, degrade, texto embaixo — porque o percurso de scroll tinha dois
-   problemas: a fachada mobile de entao era uma composta borrada que aparecia
-   sozinha atras do card, E o percurso custava tres rolagens antes da pagina
-   comecar (o mesmo tipo de queixa que tirou os reveals do site inteiro).
 
-   O primeiro motivo caiu: a foto mobile foi trocada duas vezes (ver o
-   comentario do `.palco__midia img` la em cima) e a de agora nao tem mais
-   composta nem borrao. O segundo motivo — o custo de rolagem — CONTINUA
-   valendo em tese, e e por isso que isto e rotulado TESTE: o usuario pediu
-   pra ligar de novo e ver com as fotos novas antes de decidir.
+/* ===================== HERO NO CELULAR =====================
+   ⚠️ ESTE BLOCO TEM QUE FICAR DEPOIS DE TODAS AS REGRAS BASE DO .hero. Ele ja
+   esteve logo abaixo do `.hero{}`, antes das regras de h1/selo/nota/sub, e
+   metade dele nao pegava: mesma especificidade, e quem vem depois ganha. O
+   sintoma era traicoeiro — o titulo mudava de cor (porque `color` so existe
+   aqui) mas o selo, a nota e a chamada continuavam com a cor da base. Parecia
+   erro de cor; era erro de ordem.
 
-   O QUE ESTE BLOCO FAZIA E FOI REMOVIDO: toda a flatificacao do palco em
-   layout estatico (`.palco{height:auto}`, trilho virando coluna flex com a
-   foto em background, `.palco__fundo`/`.palco__midia` escondidos, titulo e
-   notas virando texto normal em vez de overlay). Com o bloco fora, o celular
-   agora roda EXATAMENTE o mesmo palco do desktop — mesmo <picture> de fundo
-   (`palco-fachada.webp`), mesmo card que abre (`palco-recepcao.webp`), mesmo
-   titulo com brilho dourado. So os ajustes de botao abaixo continuam, porque
-   sao sobre largura de tela, nao sobre a animacao.
+   ============ A FOTO DO CELULAR JA FOI TROCADA TRES VEZES ============
 
-   ⚠️ SE A QUEIXA DE "PARECE LENTO" VOLTAR: o conserto documentado e reverter
-   pra este mesmo desenho estatico. O commit anterior a este tem o bloco
-   inteiro pronto (`git log` / `git show`) — e mais rapido recuperar de la do
-   que reescrever do zero.
+   PRIMEIRA TROCA (19/08/2026): a composta borrada virou `fachada-mobile.webp`,
+   foto REAL em RETRATO (1086x1448) fornecida pelo usuario. Resolveu a
+   composicao, mas a propria foto tinha um borrao marrom-escuro (reflexo/sombra
+   do vidro) que o usuario circulou num print e pediu pra trocar.
 
-   ============ RODADA 2 DO TESTE, MESMO DIA: LETREIRO CORTADO E ESCURO DEMAIS
-   ============
+   SEGUNDA TROCA (19/08/2026, mesma data): entrou um recorte 1350x2048 de uma
+   imagem gerada pelo usuario, reduzido pra 820x1244.
 
-   Primeiro print do usuario no celular mostrou dois problemas que a rodada 1
-   nao pegou porque so testei com screenshot estatico, nao rolando de
-   verdade:
+   TERCEIRA TROCA (19/08/2026, junto com o modelo do Belloni): entrou
+   `fachada-topo-mobile.webp`, e ela NAO E UM RECORTE — e uma montagem. Vale
+   entender o problema antes de mexer.
 
-   1. O letreiro "REALCE ODONTOLOGIA INTEGRADA" aparecia cortado nas duas
-      pontas. Causa: `.palco__fundo` usava so `palco-fachada.webp` (a foto
-      HORIZONTAL do desktop) em `object-fit:cover`. Cobrir um celular em pe
-      (aspecto ~2:1) com uma foto paisagem forca um zoom enorme, e o corte
-      horizontal come as pontas do letreiro. Duas fotos, dois motivos
-      diferentes de existir — a vertical resolve isto igual resolveu no hero
-      estatico. Ver o comentario da propria `<picture>` no HTML pra conta
-      completa de por que `contain` e nao so trocar a foto.
-   2. As duas imagens (fundo e card) liam como escuras demais, e o fundo
-      ESCURECIA ainda mais conforme rolava — o oposto do que devia acontecer
-      numa secao que esta abrindo. Causa: os veus (`.palco__fundo::after` e
-      `.palco__midia::after`) foram calibrados pro desktop, onde a foto e bem
-      exposta e o contraste do titulo pesa mais que a claridade. Os overrides
-      abaixo so afetam o celular — o desktop no ficou como estava, sem
-      queixa. */
+   ⚠️⚠️ POR QUE UMA MONTAGEM, E NAO UM RECORTE. A foto boa da fachada
+   (`afafdasfase.png`) e HORIZONTAL: 2048x1504. O letreiro ocupa de x=316 a
+   x=1520 — 59% da largura. Pra ele caber inteiro numa tela de celular
+   (390x844, proporcao 0,46) sem `cover` comer as pontas, o quadro precisa ser
+   pelo menos tao estreito quanto a tela:
+
+       largura 1204 (o letreiro) / 0,46 = 2600px de altura necessaria
+
+   A foto tem 1504. Faltam ~1100px de altura, e nenhum recorte inventa isso.
+   Foi essa conta que derrubou as duas tentativas anteriores.
+
+   O QUE A MONTAGEM FAZ (feita com ffmpeg, canvas 1000x2200, proporcao 0,4545):
+     - fundo: a mesma foto ampliada pra cobrir os 2200px de altura, com
+       desfoque (gblur sigma=26) e escurecida. Vira profundidade de campo — o
+       olho le como continuacao da cena, nao como remendo;
+     - por cima: o recorte nitido `crop=1480:1504:210:0` reduzido pra 1000px de
+       largura, encostado em y=140 (os 140px deixam a barra do topo respirar
+       antes do letreiro);
+     - o recorte nitido tem ALFA EM RAMPA nas duas pontas — sobe nos primeiros
+       90px e desce a zero nos ultimos 325px. E isso que dissolve a emenda: sem
+       a rampa aparece uma linha reta atravessando a tela.
+
+   Resultado na tela de 390x844: `cover` escala pra 390 de largura (fator
+   0,39), o letreiro cai entre 94px e 165px do alto — logo abaixo dos 74px da
+   barra, com folga de 20px — e "ODONTOLOGIA INTEGRADA" fica inteiro logo
+   embaixo. Que era o pedido literal do usuario.
+
+   ⚠️ AQUI A REGRA E O CONTRARIO DA VERSAO ANTIGA: como o quadro montado e mais
+   ESTREITO que a tela em proporcao, `cover` corta pela ALTURA, nunca pelas
+   laterais. Hero mais alto nao come mais letreiro. Por isso o hero pode ser
+   `100svh` no celular sem risco.
+
+   **Se um dia trocar a foto de novo:** refazer a montagem inteira (fundo
+   desfocado + nitido com rampa de alfa), nao so redimensionar. O comando esta
+   reconstruivel a partir dos numeros acima. */
 @media (max-width:700px){
+  .hero{
+    /* ⚠️ O `222vw` E A TRAVA QUE PROTEGE O LETREIRO, nao um numero solto.
+       A montagem tem proporcao 0,4545 (1000x2200) e 1/0,4545 = 2,22. Enquanto
+       o hero for MAIS LARGO que essa proporcao, `cover` corta pela altura e o
+       letreiro nunca perde as pontas. Em aparelho 21:9 muito estreito (tipo
+       360x900, proporcao 0,40) o `100svh` passaria dessa conta e o corte
+       viraria lateral — ai sim comendo o "R" e o "E". O `min()` segura: nesses
+       aparelhos o hero para em 222vw e sobra um dedo de faixa de credenciais
+       aparecendo embaixo, que e um problema bem menor.
+       Se a montagem mudar de proporcao, este numero muda junto. */
+    min-height:100vh;
+    min-height:min(100svh,222vw);
+    /* ⚠️ O RECUO DE BAIXO E GRANDE POR CAUSA DO BOTAO FLUTUANTE. Com o hero na
+       tela inteira, a dupla de botoes encosta no rodape da tela — bem onde o
+       `.zap` mora (fixed, right:16 bottom:16, ~49px de bola no celular). Com
+       recuo pequeno o "Ver Especialidades" nasce por baixo dele. Estes ~80px
+       poem a dupla acima da bola com folga. Se o `.zap` mudar de tamanho ou de
+       posicao, refazer a conta aqui. */
+    padding:calc(var(--topo-h) + 1.4rem) 0 clamp(5rem,15vw,6.5rem);
+    background-image:
+      /* fio no topo, pela logo branca sobre a parede bege da fachada */
+      linear-gradient(180deg,rgba(18,12,8,.62) 0%,rgba(18,12,8,.40) 5%,rgba(18,12,8,.12) 12%,rgba(18,12,8,0) 22%),
+      /* o veu do texto sobe DE BAIXO. No celular o texto ocupa a largura toda,
+         entao aqui nao cabe a elipse de canto do desktop — mas o principio e o
+         mesmo: escuro so onde ha letra, foto limpa no resto.
+         O degrau do meio (.26 em 46%) nao e so estetica: e ele que cobre a
+         faixa onde o recorte nitido dissolve no fundo desfocado da montagem. */
+      linear-gradient(0deg,rgba(26,18,12,.91) 0%,rgba(26,18,12,.78) 18%,rgba(26,18,12,.52) 33%,rgba(26,18,12,.26) 46%,rgba(26,18,12,.06) 60%,rgba(26,18,12,0) 70%),
+      url("assets/img/fachada-topo-mobile.webp"),
+      linear-gradient(160deg,#5A4638 0%,#3B2E26 45%,#2A2019 100%);
+    background-size:cover,cover,cover,cover;
+    background-position:center,center,center top,center;
+  }
+  /* O SELO DE ENDERECO SAI NO CELULAR, por dois motivos que se somam:
+     1. ele encostava na linha "ODONTOLOGIA INTEGRADA" do letreiro — texto
+        sobre texto, e o do letreiro e o mais bonito dos dois;
+     2. e informacao repetida. A faixa de credenciais, que vem imediatamente
+        abaixo do hero, ja traz "Rua Negrao de Lima, 51 · Alvorada, Joao
+        Monlevade" por escrito, e ainda tem a secao "Onde fica" com mapa.
+     Os 44px que ele ocupava viraram respiro entre o letreiro e o titulo. */
+  .hero__selo{display:none}
+  .hero h1{max-width:none;font-size:clamp(1.9rem,8.2vw,2.7rem)}
+  .hero__sub{font-size:1rem}
   /* ⚠️ LADO A LADO, NAO EMPILHADO — mudou por pedido do usuario depois de ver
      a versao cheia (cada botao numa linha). Os dois dividem a largura igual
      (flex:1 1 0) em vez de cada um tomar a linha inteira.
      O clamp() no font-size e o que segura isso em telas de ~320-360px: sem
      ele, "Agendar avaliacao" com o icone e mais largo que a metade da tela
      nesses aparelhos, e como white-space e nowrap (pra nao quebrar a pilula
-     em duas linhas), o texto estouraria a borda em vez de quebrar. Isto vale
-     tanto no palco animado quanto no estatico — nao faz parte do teste acima. */
-  .palco__acoes{gap:.5rem;flex-wrap:nowrap}
-  .palco__acoes .btn{flex:1 1 0;justify-content:center;white-space:nowrap}
-  .palco__acoes .btn--peq{padding:.58rem .5rem;font-size:clamp(.72rem,3.6vw,.85rem);gap:.35rem}
-  .palco__acoes .btn--peq .btn__ico{width:14px;height:14px}
-
-  /* `contain` em vez de `cover`: mostra a foto vertical INTEIRA, sem cortar
-     o letreiro em nenhum aspecto de tela. A folga que sobra em cima/embaixo
-     (tipicamente ~50px de cada lado num celular comum) e preenchida pelo
-     `--marrom` de `.palco` — nao precisa de regra nova pra isso, e so o que
-     ja fica visivel atras de um elemento que nao cobre tudo. */
-  .palco__fundo img{object-fit:contain}
-
-  /* Veu do fundo bem mais claro, e — o pedido especifico do usuario —
-     DECRESCENTE em vez de crescente: a foto fica mais clara conforme abre,
-     nao mais escura. No desktop essa mesma regra continua `.85→1` (cresce);
-     aqui vai de ~.5 pra ~.3. O gradiente em si tambem perde forca (.30/.72
-     no desktop vira .10/.35 aqui) porque quem segura a legibilidade do
-     titulo e o scrim dedicado (`.palco__titulo::before`), que nao mudou —
-     esse veu de fundo e so ambiencia, sobra espaco pra clarear. */
-  .palco__fundo::after{
-    background:linear-gradient(180deg,rgba(var(--veu),.10) 0%,rgba(var(--veu),.35) 100%);
-    opacity:calc(.5 * (1 - var(--p)) + .3 * var(--p));
-  }
-  /* Card mais claro no repouso (era .34 de alpha, base do desktop) — a
-     tendencia (clareia conforme abre, ate sumir em p=1) continua a mesma,
-     so o ponto de partida ficou mais leve. */
-  .palco__midia::after{background:rgba(var(--veu),.16)}
+     em duas linhas), o texto estouraria a borda em vez de quebrar. */
+  .hero__acoes{margin-top:1.5rem;gap:.5rem;flex-wrap:nowrap}
+  .hero__acoes .btn{flex:1 1 0;justify-content:center;white-space:nowrap}
+  .hero__acoes .btn--peq{padding:.58rem .5rem;font-size:clamp(.72rem,3.6vw,.85rem);gap:.35rem}
+  .hero__acoes .btn--peq .btn__ico{width:14px;height:14px}
 }
-
-.hero__acoes{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.8rem}
 
 .moldura{
   position:relative;border-radius:var(--raio-g);overflow:hidden;
@@ -686,9 +722,12 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 }
 .aval blockquote{margin:0;color:var(--texto);font-size:1.02rem}
 .aval__quem{margin-top:auto;display:flex;align-items:center;gap:.8rem}
+/* Circulo das iniciais: era verde-sage, saiu junto com o fundo da secao.
+   Areia com marrom escrito por cima — mesmo par de cores da faixa, e passa
+   folgado em contraste sobre o card branco. */
 .aval__ini{
   width:44px;height:44px;border-radius:50%;flex:none;
-  background:var(--sage);color:#2E3B28;
+  background:var(--areia);color:var(--marrom);
   display:grid;place-items:center;
   font-weight:700;font-size:.9rem;letter-spacing:.03em;
 }
@@ -718,7 +757,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 }
 .carrossel--on .carrossel__controles{display:flex}
 .seta{
-  width:44px;height:44px;border-radius:50%;flex:none;
+  width:48px;height:48px;border-radius:50%;flex:none;
   background:var(--papel);border:1px solid var(--borda);color:var(--marrom);
   display:grid;place-items:center;cursor:pointer;
   font-size:1.1rem;line-height:1;
@@ -727,13 +766,23 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 .seta:hover{border-color:var(--dourado);color:var(--dourado);transform:translateY(-1px)}
 .seta:focus-visible{outline:2px solid var(--dourado);outline-offset:2px}
 .pontos{display:flex;align-items:center;gap:.45rem}
+/* O ponto continua com 8px de BOLINHA, mas o botao inteiro tem 48px de alvo:
+   o desenho vive no ::after e o <button> vira so a area de toque, transparente.
+   Sem isso o Lighthouse reprova (alvo de 8px) e o dedo erra o ponto no
+   celular — os dois problemas se resolvem no mesmo lugar. */
 .ponto{
-  width:8px;height:8px;padding:0;border:0;border-radius:999px;
-  background:#CFC3B0;cursor:pointer;
-  transition:width .3s cubic-bezier(.22,1,.36,1),background .3s;
+  position:relative;width:22px;height:48px;padding:0;border:0;
+  background:none;cursor:pointer;
+  transition:width .3s cubic-bezier(.22,1,.36,1);
 }
-.ponto[aria-current="true"]{width:26px;background:var(--dourado)}
-.ponto:focus-visible{outline:2px solid var(--dourado);outline-offset:3px}
+.ponto::after{
+  content:"";position:absolute;inset:50% 0 auto 0;transform:translateY(-50%);
+  height:8px;border-radius:999px;background:#CFC3B0;
+  transition:background .3s;
+}
+.ponto[aria-current="true"]{width:40px}
+.ponto[aria-current="true"]::after{background:var(--dourado)}
+.ponto:focus-visible{outline:2px solid var(--dourado);outline-offset:3px;border-radius:8px}
 
 /* ====================== leque do instagram ======================
    Mesmo componente do Caldas Coelho, do Rancho Canaa e da GeP. --passo (a
@@ -927,9 +976,11 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 .rodape h4{color:#fff;font-size:1rem;margin-bottom:.8rem}
 .rodape a{color:#C6B8A8;text-decoration:none}
 .rodape a:hover{color:var(--dourado-claro)}
-.rodape__lista{list-style:none;margin:0;padding:0;display:grid;gap:.55rem}
+.rodape__lista{list-style:none;margin:0;padding:0;display:grid;gap:.35rem}
 .rodape__lista li{display:flex}
-.rodape__lista a,.rodape__horario{display:flex;align-items:center;gap:.6rem}
+/* min-height de 44px + o gap da lista poe o centro de um link a ~50px do
+   centro do vizinho, que e o que o Lighthouse mede em "tap targets". */
+.rodape__lista a,.rodape__horario{display:flex;align-items:center;gap:.6rem;min-height:44px}
 .rodape__lista svg{width:16px;height:16px;fill:currentColor;flex:none;opacity:.75}
 .rodape__horario{color:#9C8E7F}
 
@@ -937,7 +988,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
    linguagem das setas do carrossel, pra nao inventar um terceiro botao. */
 .sociais{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.3rem}
 .social{
-  width:46px;height:46px;border-radius:50%;
+  width:48px;height:48px;border-radius:50%;
   display:grid;place-items:center;color:#E7DCCA;
   background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
   transition:background .18s,border-color .18s,color .18s,transform .18s;
@@ -1000,8 +1051,13 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 <!-- ===== topo ===== -->
 <header class="topo">
   <div class="env topo__linha">
+    <!-- Duas logos empilhadas: a dourada (fundo creme opaco) pra barra creme,
+         a branca (fundo transparente) pra barra invisivel sobre a fachada. So
+         a dourada tem `alt` — a branca e a mesma marca repetida e entraria no
+         leitor de tela duas vezes. Ver o bloco do `.topo` no CSS. -->
     <a class="marca" href="#topo" aria-label="Realce Odontologia Integrada — início">
-      <img src="assets/img/logo.webp" width="720" height="202" alt="Realce Odontologia Integrada">
+      <img class="marca__ouro" src="assets/img/logo.webp" width="720" height="202" alt="Realce Odontologia Integrada">
+      <img class="marca__branca" src="assets/img/logo-branca.webp" width="720" height="202" alt="" aria-hidden="true">
     </a>
     <nav class="menu">
       <a href="#tratamentos">Tratamentos</a>
@@ -1018,118 +1074,50 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
   </div>
 </header>
 
-<!-- ===== hero "palco" =====
-     Da rua pra dentro: o fundo e a fachada, o card e a recepcao, e rolar abre
-     a clinica ate ocupar a tela. Componente
-     templates/componentes/hero-abre-com-scroll.html.
+<!-- ===== hero =====
+     Sem percurso, sem card, sem JS: a fachada e fundo de CSS e o texto mora
+     em cima dela, alinhado embaixo e a esquerda. Mesmo desenho do Caldas
+     Coelho e da GeP, com a foto ocupando a tela inteira no modelo que o
+     usuario trouxe (Belloni Motors).
 
-     O CSS ja esta aplicado (fica no <head>) e o script vem logo depois desta
-     secao — nessa ordem, e nao ao contrario. Ver o aviso no bloco CSS. -->
-<section class="palco" id="topo">
-  <div class="palco__trilho">
-
-    <!-- ⚠️ VOLTOU A TER <source> MOBILE (19/08/2026, teste do palco animado
-         no celular). Sao DUAS FOTOS DIFERENTES, nao dois cortes da mesma:
-
-           desktop → palco-fachada.webp     horizontal, retocada por IA
-           celular → fachada-mobile.webp    vertical, mesma foto do hero
-                                             estatico anterior (ver o
-                                             comentario grande no <style>)
-
-         POR QUE PRECISA DA FOTO VERTICAL AQUI TAMBEM, E NAO SO NO HERO
-         ESTATICO: `.palco__fundo` cobre 100dvh inteiro, e um celular em pe
-         tem aspecto MAIS alto/estreito do que o quadro de 600px que o hero
-         estatico usava. Testado: mesmo a foto vertical, em `object-fit:cover`
-         numa tela de 390x800 (aspecto 2.05), teria que cortar ~106px de cada
-         lado pra cobrir a altura — MAIS que os 42px de folga ate a letra mais
-         proxima do letreiro. Por isso o `object-fit` vira `contain` abaixo de
-         700px (ver `.palco__fundo img` no <style>): mostra a foto inteira,
-         sem cortar nada, com uma faixa da cor de fundo (`--marrom`) sobrando
-         em cima/embaixo quando a tela for mais alta que a foto. -->
-    <div class="palco__fundo">
-      <picture>
-        <source media="(max-width:700px)" srcset="assets/img/fachada-mobile.webp">
-        <img src="assets/img/palco-fachada.webp" alt="Fachada da Realce Odontologia Integrada: letreiro em metal escovado sobre a porta de vidro, na Rua Negrão de Lima" width="1500" height="1102" fetchpriority="high">
-      </picture>
-    </div>
-
-    <!-- O card da recepcao e peca do percurso e NAO aparece no celular (o CSS
-         o esconde ate 700px, onde o hero e estatico). Por isso duas coisas:
-
-         1. Nao ha mais <source> mobile. A versao -mobile.webp foi apagada:
-            eram 106 KB baixados pra nada, mais que a propria fachada de fundo.
-         2. loading="lazy" NAO e descuido com o hero. Num container
-            display:none o navegador nunca calcula intersecao e nunca busca a
-            imagem — e assim que o celular deixa de pagar por ela. No desktop
-            o card esta na tela desde o primeiro quadro, entao a imagem carrega
-            de imediato do mesmo jeito. O LCP e a fachada de fundo, que tem
-            preload e fetchpriority="high" no <head>, e nao este card. -->
-    <picture class="palco__midia">
-      <img src="assets/img/palco-recepcao.webp" alt="Recepção da Realce: painel de madeira com a logo em dourado, luminária ondulada e orquídea sobre o balcão" width="912" height="1170" loading="lazy">
-    </picture>
-
-    <h1 class="palco__titulo">
-      <span class="palco__meia palco__meia--esq">Seu sorriso saudável,</span>
-      <span class="palco__meia palco__meia--dir">com todo o carinho.</span>
-    </h1>
-
-    <p class="palco__nota palco__nota--esq"><b>4,9</b> <span class="estrelas" aria-hidden="true">★★★★★</span> em <b>105</b> avaliações no Google</p>
-    <!-- "Role para entrar" so faz sentido onde ha percurso. No celular o hero
-         e estatico e o span some; o que sobra vira o selo de local do topo. -->
-    <p class="palco__nota palco__nota--dir">João Monlevade, MG<span class="palco__rolar"> · Role para entrar ↓</span></p>
-
-    <div class="palco__final">
-      <p>Ortodontia, clareamento, implantes e clínica geral, no Bairro Alvorada.</p>
-      <div class="palco__acoes">
+     ORDEM DO BLOCO, e ela nao e casual: selo do endereco (quem chega pela
+     busca quer saber ONDE), frase, 4,9 · 105, o que se faz, botoes. O 4,9 vem
+     ANTES da lista de tratamentos porque e o argumento mais forte da pagina —
+     105 avaliacoes e o maior ativo desse cliente. -->
+<section class="hero" id="topo">
+  <div class="env">
+      <!-- A rua sai no celular: o endereco inteiro quebra a pilula em duas
+           linhas e ela vira um bloco torto. Bairro + cidade e o que a pessoa
+           precisa pra decidir se e perto; o numero da rua ela busca depois, na
+           secao "Onde fica", que tem mapa e botao de rota. -->
+      <span class="hero__selo">
+        <svg aria-hidden="true"><use href="#i-pin"/></svg>
+        <span class="hero__rua">Rua Negrão de Lima, 51 · </span>Alvorada · João Monlevade/MG
+      </span>
+      <h1>Seu sorriso saudável, com todo o carinho que você merece.</h1>
+      <p class="hero__nota"><b>4,9</b> <span class="estrelas" aria-hidden="true">★★★★★</span> em <b>105</b> avaliações no Google</p>
+      <!-- Duas linhas, e nao tres: no celular cada linha aqui empurra o texto
+           pra cima do letreiro. O nome dela sai daqui sem perda — aparece na
+           faixa de credenciais logo abaixo e no h2 da secao "A dentista". Os
+           termos de busca (ortodontia, clareamento, implantes) ficam, porque o
+           h1 e emocional e a pagina nao pode perder as palavras que o Google
+           usa. -->
+      <p class="hero__sub">
+        Ortodontia, clareamento, implantes e clínica geral, no Bairro Alvorada.
+      </p>
+      <div class="hero__acoes">
         <a class="btn btn--peq" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20agendar%20uma%20consulta." target="_blank" rel="noopener">
           <svg class="btn__ico" aria-hidden="true"><use href="#i-zap"/></svg>
           Agendar avaliação
         </a>
-        <a class="btn btn--linha btn--peq" href="#tratamentos">Ver Especialidades</a>
+        <a class="btn btn--linha btn--peq" href="#tratamentos">Ver especialidades</a>
       </div>
-    </div>
-
   </div>
+  <span class="hero__rolar" aria-hidden="true">Role para descobrir</span>
 </section>
 
-<script>
-  /* O percurso do palco. O script nao anima nada: ele so escreve --p, de 0 a 1,
-     e o CSS interpola o resto. As medidas ficam em cache (topo/curso) — ler
-     offsetHeight a cada frame, logo depois de escrever --p no frame anterior,
-     obriga o navegador a recalcular layout na hora, e e esse vaivem que engasga
-     o scroll no celular. Por frame so se le window.scrollY, que nao custa
-     layout. */
-  (function () {
-    var palco = document.querySelector(".palco");
-    if (!palco) return;
-    var topo = 0, curso = 0;
-    function medir() {
-      topo = palco.getBoundingClientRect().top + window.scrollY;
-      curso = palco.offsetHeight - window.innerHeight;
-    }
-    var agendado = false, ultimo = -1;
-    function atualizar() {
-      agendado = false;
-      var p = curso > 0 ? Math.min(1, Math.max(0, (window.scrollY - topo) / curso)) : 0;
-      if (p === ultimo) return;
-      /* Passos menores que 0,002 nao mudam um pixel na tela e so custam
-         repintura — mas 0 e 1 sempre passam, senao o percurso nao fecha. */
-      if (p !== 0 && p !== 1 && Math.abs(p - ultimo) < 0.002) return;
-      ultimo = p;
-      palco.style.setProperty("--p", p.toFixed(4));
-      palco.classList.toggle("palco--fim", p > 0.78);
-    }
-    function agendar() { if (!agendado) { agendado = true; requestAnimationFrame(atualizar); } }
-    window.addEventListener("scroll", agendar, { passive: true });
-    window.addEventListener("resize", function () { medir(); agendar(); });
-    medir();
-    atualizar();
-  })();
-</script>
-
 <!-- ===== credenciais ===== -->
-<!-- ===== faixa de credenciais =====
-     Os quatro itens aparecem duas vezes de proposito — e o que faz o letreiro
+<!-- Os quatro itens aparecem duas vezes de proposito — e o que faz o letreiro
      do celular fechar sem costura. Se um item mudar (novo convenio, por
      exemplo), muda nos DOIS trilhos, senao o loop passa a repetir informacao
      desatualizada por meia volta. Ver o comentario grande no CSS. -->
@@ -1181,7 +1169,10 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
   <div class="env">
     <div class="cabeca">
       <span class="olho">Como aqui se trabalha</span>
-      <h2>Três coisas que a gente não abre mão</h2>
+      <!-- "que a gente nao abre mao" saiu na revisao de portugues: abre-se mao
+           DE alguma coisa, e sem o "de" a frase fica errada. "De que a gente
+           nao abre mao" corrige mas fica empolado pro tom do site. -->
+      <h2>Três coisas que a gente leva a sério</h2>
     </div>
     <div class="promessas">
       <article class="promessa">
@@ -1251,7 +1242,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
       <article class="tratamento">
         <div class="ico ico--cirurgia" aria-hidden="true"></div>
         <h3>Cirurgia oral</h3>
-        <p>Extração de sisos, inclusive inclusos, com planejamento prévio e acompanhamento da recuperação.</p>
+        <p>Extração de sisos, mesmo os inclusos, com planejamento prévio e acompanhamento da recuperação.</p>
       </article>
 
       <article class="tratamento">
@@ -1276,31 +1267,31 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
     <div class="cabeca">
       <span class="olho">A clínica</span>
       <h2>Por dentro da Realce</h2>
-      <p class="chamada">Clínica nova, com recepção ampla, sala de planejamento e consultórios próprios. Ambiente claro, silencioso e bem cuidado, do jeito que dá gosto de esperar a sua vez.</p>
+      <p class="chamada">Clínica nova, com recepção ampla, sala de planejamento e consultórios equipados. Ambiente claro, silencioso e bem cuidado, do jeito que dá gosto de esperar a sua vez.</p>
     </div>
     <div class="galeria">
       <figure>
-        <img src="assets/img/corredor.webp" width="900" height="512" loading="lazy"
+        <img src="assets/img/corredor.webp" width="900" height="512" loading="lazy" decoding="async"
              alt="Recepção da Realce com painel de madeira, logo em dourado e corredor de acesso aos consultórios">
       </figure>
       <figure>
-        <img src="assets/img/recepcao.webp" width="720" height="728" loading="lazy"
+        <img src="assets/img/recepcao.webp" width="720" height="728" loading="lazy" decoding="async"
              alt="Balcão da recepção e parede verde com a frase Excelência em odontologia, dedicação em cada sorriso">
       </figure>
       <figure>
-        <img src="assets/img/consultorio-1.webp" width="720" height="734" loading="lazy"
+        <img src="assets/img/consultorio-1.webp" width="720" height="734" loading="lazy" decoding="async"
              alt="Consultório com cadeira odontológica, bancada e frase dourada na parede">
       </figure>
       <figure>
-        <img src="assets/img/consultorio-3.webp" width="720" height="825" loading="lazy"
+        <img src="assets/img/consultorio-3.webp" width="720" height="825" loading="lazy" decoding="async"
              alt="Consultório da Realce com iluminação embutida e detalhe de parede iluminado">
       </figure>
       <figure>
-        <img src="assets/img/consultorio-2.webp" width="720" height="731" loading="lazy"
+        <img src="assets/img/consultorio-2.webp" width="720" height="731" loading="lazy" decoding="async"
              alt="Segundo consultório, com cadeira odontológica, pia e bancada de apoio">
       </figure>
       <figure>
-        <img src="assets/img/sala-planejamento.webp" width="720" height="820" loading="lazy"
+        <img src="assets/img/sala-planejamento.webp" width="720" height="820" loading="lazy" decoding="async"
              alt="Sala de atendimento e planejamento, com mesa, cadeiras e painel ripado de madeira">
       </figure>
     </div>
@@ -1316,7 +1307,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
      Tambem ficou de fora a avaliacao da Priscila Machado: elogia a Dra.
      Fernanda, mas cita preco, e preco e vedado no site pelo CFO ainda que
      venha da boca do paciente. -->
-<section class="secao secao--sage" id="avaliacoes">
+<section class="secao secao--areia" id="avaliacoes">
   <div class="env">
     <div class="cabeca">
       <span class="olho">Quem já passou por aqui</span>
@@ -1416,7 +1407,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
     <div class="cabeca">
       <span class="olho">Convênios</span>
       <h2>Atendemos o seu plano odontológico</h2>
-      <p class="chamada">Se você tem plano pela empresa ou pelo serviço público, é possível que já esteja coberto aqui. Na dúvida, chame no WhatsApp que a gente confere para você.</p>
+      <p class="chamada">Se você tem plano pela empresa ou pelo serviço público, pode ser que já esteja coberto aqui. Na dúvida, chame no WhatsApp que a gente confere para você.</p>
     </div>
     <div class="convenios">
       <div class="convenio">
@@ -1441,13 +1432,13 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 <section class="secao" id="dentista">
   <div class="env dupla">
     <figure class="moldura" style="margin:0">
-      <img src="assets/img/dra-fernanda.webp" width="780" height="976" loading="lazy"
+      <img src="assets/img/dra-fernanda.webp" width="780" height="976" loading="lazy" decoding="async"
            alt="Dra. Fernanda Magalhães atendendo em um dos consultórios da Realce">
     </figure>
     <div>
       <span class="olho">Quem atende você</span>
       <h2>Prazer, Fernanda.</h2>
-      <p class="chamada">Cirurgiã-dentista formada em Odontologia e com especialização em Ortodontia, responsável técnica da Realce Odontologia Integrada, em João Monlevade.</p>
+      <p class="chamada">Cirurgiã-dentista com especialização em Ortodontia, responsável técnica da Realce Odontologia Integrada, em João Monlevade.</p>
       <ul class="lista">
         <li>Especialização em Ortodontia, com cursos de atualização constantes</li>
         <li>Atende uma ampla gama de casos ortodônticos, de crianças a adultos</li>
@@ -1516,7 +1507,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
     <div class="faq">
       <details>
         <summary>Como faço para marcar uma consulta?</summary>
-        <p>Pelo WhatsApp <b>(31) 97215-9568</b>. É o número da clínica, e quem responde é a nossa secretaria, dentro do horário de atendimento.</p>
+        <p>Pelo WhatsApp <b>(31) 97215-9568</b>. É o número da clínica, e quem responde é a nossa recepção, dentro do horário de atendimento.</p>
       </details>
       <details>
         <summary>Vocês atendem plano odontológico?</summary>
@@ -1575,7 +1566,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 
       <div class="comodidade">
         <h3>Pagamento e agendamento</h3>
-        <p>Cartão de crédito, débito e por aproximação. Atendimento com hora marcada, agendada pelo WhatsApp.</p>
+        <p>Cartão de crédito, cartão de débito e pagamento por aproximação. Atendimento com hora marcada, agendada pelo WhatsApp.</p>
       </div>
 
       <div class="comodidade">
@@ -1589,7 +1580,7 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
 <section class="secao secao--escura" id="local">
   <div class="env">
     <figure class="local__fachada">
-      <img src="assets/img/fachada.webp" width="1400" height="1028" loading="lazy"
+      <img src="assets/img/fachada.webp" width="1400" height="1028" loading="lazy" decoding="async"
            alt="Fachada da Realce Odontologia Integrada, na Rua Negrão de Lima, 51, em João Monlevade">
     </figure>
     <div class="local">
@@ -1708,6 +1699,21 @@ html:not(.js) .palco__final{opacity:1;pointer-events:auto}
   var mq = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)");
   var semMovimento = !!(mq && mq.matches);
   var temObs = "IntersectionObserver" in window;
+
+  /* ---------- 0. a barra do topo em cima da fachada ---------- */
+  /* A foto do hero sobe por baixo da barra, entao ela nasce sem fundo e so
+     ganha o creme depois de 24px de rolagem. Fica ANTES de tudo aqui de
+     proposito: o carrossel la embaixo tem um `return` que aborta o resto da
+     funcao, e a barra nao pode depender de existir carrossel na pagina. */
+  var topo = document.querySelector(".topo");
+  if (topo) {
+    var marcaTopo = function(){
+      var y = window.pageYOffset || document.documentElement.scrollTop || 0;
+      topo.classList.toggle("topo--rolado", y > 24);
+    };
+    marcaTopo();
+    window.addEventListener("scroll", marcaTopo, { passive: true });
+  }
 
   /* ---------- 1. o placar que conta ---------- */
   function formata(v, casas){

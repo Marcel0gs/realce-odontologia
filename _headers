@@ -1,0 +1,20 @@
+# Cabeçalhos de cache — arquivo lido só pelo Netlify.
+# No GitHub Pages ele é ignorado (o Pages não permite controlar cabeçalho),
+# e fica aqui sem fazer mal nenhum.
+#
+# Por que 30 dias e não 1 ano com "immutable", que é o que o Lighthouse pede:
+# os arquivos de assets NÃO têm hash no nome (é `fachada-topo.webp`, não
+# `fachada-topo.a1b2c3.webp`). Com "immutable" de 1 ano, trocar uma foto
+# mantendo o nome deixaria o navegador da cliente servindo a foto velha por
+# um ano, sem jeito de forçar. Enquanto o site estiver em ajuste, 30 dias é o
+# equilíbrio: ganha o cache de visita repetida e ainda dá pra corrigir.
+# Se um dia os nomes ganharem hash, aí sim vale subir pra 31536000 immutable.
+
+/assets/*
+  Cache-Control: public, max-age=2592000
+
+# O HTML sempre revalidado: é ele que aponta pra tudo o que mudou.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
