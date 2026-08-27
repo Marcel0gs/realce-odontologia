@@ -15,7 +15,7 @@
 <script>document.documentElement.className+=" js";</script>
 
 <title>Realce Odontologia Integrada — dentista e ortodontista em João Monlevade/MG</title>
-<meta name="description" content="Clínica odontológica na Rua Negrão de Lima, 51 — Alvorada, João Monlevade/MG. Ortodontia, clareamento, implantes, limpeza e restaurações com a Dra. Fernanda Magalhães, CRO-MG 44763. 4,9 no Google. Atendemos PASA e IPSM.">
+<meta name="description" content="Clínica odontológica na Rua Negrão de Lima, 51 — Alvorada, João Monlevade/MG. Ortodontia, clareamento, implantes, limpeza e restaurações com a Dra. Fernanda Magalhães, CRO-MG 44763. 4,9 no Google. Atendemos PASA, AMS e IPSM.">
 <!-- ⚠️ ESTE E O SITE, ponto. Ate 19/08/2026 ele foi a "variante B" e vivia em
      `site-topo-classico/`, com noindex e um repo separado, so pra comparar com
      a variante do palco animado. O usuario escolheu esta, e ela mudou de pasta
@@ -28,7 +28,7 @@
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="Realce Odontologia Integrada — João Monlevade/MG">
-<meta property="og:description" content="Ortodontia, clareamento, implantes e clínica geral em João Monlevade/MG. 4,9 no Google em 105 avaliações. Atendemos PASA e IPSM.">
+<meta property="og:description" content="Ortodontia, clareamento, implantes e clínica geral em João Monlevade/MG. 4,9 no Google em 105 avaliações. Atendemos PASA, AMS e IPSM.">
 <meta property="og:image" content="https://marcel0gs.github.io/realce-odontologia/assets/img/og-logo.webp">
 <meta property="og:locale" content="pt_BR">
 
@@ -757,7 +757,25 @@ h3{font-size:1.18rem}
    Sem texto por cima de foto. Foi a licao do Caldas Coelho: pra o texto ter
    contraste o veu precisa ser escuro, e no fim a foto some — o oposto do que
    a secao existe pra fazer. Aqui o texto tem o espaco dele e as fotos tem o
-   delas. */
+   delas.
+
+   ⚠️ A GRADE VIROU PALCO EM 27/08/2026 — mas a grade CONTINUA AQUI, e nao e
+   sobra. Pedido do usuario: "deixe as imagens no formato do site da larissa
+   martins da parte tratamentos". La e uma foto grande de cada vez, trocando
+   numa bolha de vidro em WebGL. O que NAO veio de la, tambem por pedido dele
+   ("pode ser um pouco mais simples, nao contendo as legendas e informacoes
+   embaixo de cada imagem"), foi o bloco de familia + titulo + descricao. Foto
+   de comodo nao precisa de legenda — o `alt` de cada uma continua escrito no
+   HTML e e ele que o leitor de tela le.
+
+   A GRADE E O ESTADO SEM JS, e e dela que o script tira `src` e `alt` das
+   seis fotos. Sem script a pessoa ve as seis de uma vez, como antes; com
+   script a grade some (`.palco--on .galeria`) e o palco entra. Mesma mecanica
+   do carrossel dos depoimentos, que so existe com a classe `carrossel--on`.
+
+   A regra "nenhum texto por cima de foto" continua valendo pro CONTEUDO. O
+   que fica sobre a foto aqui e so contador e setas — controle, nao copy — e o
+   contador tem um veu curto so no topo pra ler sobre parede clara. */
 .galeria{display:grid;gap:.9rem;grid-template-columns:repeat(2,1fr)}
 @media (min-width:860px){.galeria{grid-template-columns:repeat(3,1fr)}}
 /* Sao seis fotos com proporcoes diferentes. Sem uma proporcao fixa, cada
@@ -772,6 +790,63 @@ h3{font-size:1.18rem}
 }
 .galeria img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
 .galeria figure:hover img{transform:scale(1.04)}
+
+/* ---------- o palco, que so existe com JS ---------- */
+.palco--on .galeria{display:none}
+/* ⚠️ A PROPORCAO DO QUADRO E O UNICO NUMERO DELICADO DAQUI, e o motivo e o
+   acervo: cinco das seis fotos sao quase quadradas (720x728 a 720x825) e uma,
+   a do corredor, e 900x512 — quase 16/9. O quadro corta em `cover`, entao
+   quanto mais quadrado o quadro, mais o corredor perde de largura, e e nele
+   que esta a logo da Realce na parede. Em 4/3 o corte do corredor tira 24% da
+   largura e a logo continua inteira; em 1/1 tiraria 43% e comeria o "R".
+   Por isso o quadro e DEITADO nas duas larguras — 5/4 no celular (onde o
+   quadro e estreito e a altura faz falta) e 4/3 no desktop. Trocou foto:
+   confere o corte da mais larga do conjunto, nao a media. */
+.palco__quadro{
+  position:relative;margin-inline:auto;
+  width:min(100%,860px);aspect-ratio:5/4;
+  border-radius:var(--raio-g);overflow:hidden;
+  background:var(--creme-esc);box-shadow:var(--sombra);
+  /* deixa a pagina rolar na vertical mesmo com o gesto de arrastar horizontal */
+  touch-action:pan-y;
+}
+@media (min-width:900px){.palco__quadro{aspect-ratio:4/3}}
+.palco__foto,.palco__tela{position:absolute;inset:0;width:100%;height:100%;display:block}
+.palco__foto{object-fit:cover;transition:opacity .3s ease}
+.palco--trocando .palco__foto{opacity:0}
+/* O <img> e o estado padrao; o canvas so aparece DEPOIS que o primeiro quadro
+   foi desenhado com sucesso. Celular antigo, GPU bloqueada ou aba sem contexto
+   caem no fade do <img> e a secao continua funcionando igual. */
+.palco__tela{opacity:0;transition:opacity .4s ease}
+.palco--gl .palco__tela{opacity:1}
+.palco--gl .palco__foto{visibility:hidden}
+.palco__veu{
+  position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(59,46,38,.42) 0%,rgba(59,46,38,0) 22%);
+}
+.palco__conta{
+  position:absolute;top:clamp(.85rem,3vw,1.4rem);right:clamp(.85rem,3vw,1.4rem);
+  font-size:.72rem;letter-spacing:.2em;color:rgba(255,255,255,.75);
+}
+.palco__conta b{color:#fff;font-weight:600}
+/* Setas escuras sobre a foto, e nao o `.seta` claro dos depoimentos: as seis
+   fotos sao de parede clara e madeira, e circulo branco sobre elas some. */
+.palco__seta{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:48px;height:48px;border-radius:50%;padding:0;
+  display:grid;place-items:center;cursor:pointer;
+  background:rgba(59,46,38,.42);border:1px solid rgba(255,255,255,.34);
+  color:#fff;font-size:1.35rem;line-height:1;
+  transition:background .18s,border-color .18s;
+}
+.palco__seta:hover{background:rgba(59,46,38,.82);border-color:#fff}
+.palco__seta:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.palco__seta--ant{left:clamp(.5rem,2.5vw,1rem)}
+.palco__seta--prox{right:clamp(.5rem,2.5vw,1rem)}
+/* Os pontos sao os MESMOS dos depoimentos (`.ponto`), de proposito: e o
+   segundo lugar da pagina onde se escolhe um item de uma serie, e inventar um
+   segundo desenho pra isso so daria trabalho de manter. */
+.palco__pontos{justify-content:center;margin-top:1.1rem}
 
 /* ====================== avaliacoes ======================
    105 avaliacoes com 4,9 e o maior ativo desse cliente. O numero vem antes
@@ -955,6 +1030,12 @@ h3{font-size:1.18rem}
 }
 .convenio b{font-family:Georgia,serif;font-size:1.3rem;letter-spacing:.06em;color:#fff}
 .convenio span{font-size:.8rem;color:#C6B8A8}
+/* ⚠️ NO CELULAR OS SETE CARDS OCUPAM A LARGURA INTEIRA. Enquanto eram dois
+   dava pra deixar cada um do tamanho do proprio texto; com sete empilhados a
+   borda direita vira uma escadinha — o do IPSM e quase o dobro do da AMS. No
+   desktop eles continuam do tamanho do conteudo, porque ali fecham linha e a
+   escadinha nao aparece. */
+@media (max-width:560px){.convenio{width:100%}}
 
 /* ====================== dupla foto + texto ====================== */
 .dupla{display:grid;gap:clamp(2rem,5vw,3.5rem);align-items:center}
@@ -1222,7 +1303,7 @@ h3{font-size:1.18rem}
   <div class="env credenciais__pista">
     <div class="credenciais__trilho">
       <span class="credenciais__item"><b>Ortodontia</b> e clínica geral</span>
-      <span class="credenciais__item">Atendemos <b>PASA</b> e <b>IPSM</b></span>
+      <span class="credenciais__item">Atendemos <b>PASA</b>, <b>AMS</b> e <b>IPSM</b></span>
       <span class="credenciais__item">Rua Negrão de Lima, 51 · <b>Alvorada, João Monlevade</b></span>
       <span class="credenciais__item">Responsável técnica <b>CRO-MG 44763</b></span>
       <span class="credenciais__item"><b>4,9</b> no Google em <b>105</b> avaliações</span>
@@ -1230,7 +1311,7 @@ h3{font-size:1.18rem}
     </div>
     <div class="credenciais__trilho" aria-hidden="true">
       <span class="credenciais__item"><b>Ortodontia</b> e clínica geral</span>
-      <span class="credenciais__item">Atendemos <b>PASA</b> e <b>IPSM</b></span>
+      <span class="credenciais__item">Atendemos <b>PASA</b>, <b>AMS</b> e <b>IPSM</b></span>
       <span class="credenciais__item">Rua Negrão de Lima, 51 · <b>Alvorada, João Monlevade</b></span>
       <span class="credenciais__item">Responsável técnica <b>CRO-MG 44763</b></span>
       <span class="credenciais__item"><b>4,9</b> no Google em <b>105</b> avaliações</span>
@@ -1371,6 +1452,21 @@ h3{font-size:1.18rem}
            (acolhedora, clara, silenciosa) continua verdadeiro. -->
       <p class="chamada">Clínica acolhedora, com recepção ampla, sala de planejamento e consultórios equipados. Ambiente claro, silencioso e bem cuidado, do jeito que dá gosto de esperar a sua vez.</p>
     </div>
+    <!-- ⚠️ O QUADRO NASCE `hidden` E QUEM O ABRE E O SCRIPT. Sem JS ele nunca
+         aparece, e o que se ve e a grade das seis fotos, como sempre foi.
+         O <img> nasce SEM `src` de proposito: e o script que escreve, copiando
+         da primeira <figure>. Assim a foto do palco nao e um sétimo arquivo
+         nem um download duplicado — e a mesma da grade, do mesmo cache. -->
+    <div class="palco" data-palco>
+      <div class="palco__quadro" data-quadro hidden>
+        <img class="palco__foto" data-foto alt="" width="900" height="720" decoding="async">
+        <canvas class="palco__tela" data-tela aria-hidden="true"></canvas>
+        <div class="palco__veu" aria-hidden="true"></div>
+        <span class="palco__conta" aria-hidden="true"><b data-atual>01</b> / <span data-total>06</span></span>
+        <button class="palco__seta palco__seta--ant" type="button" data-ant aria-label="Foto anterior">‹</button>
+        <button class="palco__seta palco__seta--prox" type="button" data-prox aria-label="Próxima foto">›</button>
+      </div>
+
     <div class="galeria">
       <figure>
         <img src="assets/img/corredor.webp" width="900" height="512" loading="lazy" decoding="async"
@@ -1396,6 +1492,11 @@ h3{font-size:1.18rem}
         <img src="assets/img/sala-planejamento.webp" width="720" height="820" loading="lazy" decoding="async"
              alt="Sala de atendimento e planejamento, com mesa, cadeiras e painel ripado de madeira">
       </figure>
+    </div>
+
+      <!-- Os pontos sao montados pelo script. Sem JS a caixa fica vazia e nao
+           ocupa espaco — botao que nao faz nada e pior do que botao nenhum. -->
+      <div class="pontos palco__pontos" data-pontos role="group" aria-label="Escolher foto da clínica"></div>
     </div>
   </div>
 </section>
@@ -1511,14 +1612,41 @@ h3{font-size:1.18rem}
       <h2>Atendemos o seu plano odontológico</h2>
       <p class="chamada">Se você tem plano pela empresa ou pelo serviço público, pode ser que já esteja coberto aqui. Na dúvida, chame no WhatsApp que a gente confere para você.</p>
     </div>
+    <!-- ⚠️ A ORDEM NAO E A DO CARTAZ DELA, e e de proposito. Os tres primeiros
+         sao os que tem busca em Joao Monlevade: PASA e AMS sao os planos da
+         Vale numa cidade de mineracao, e o IPSM e o dos militares. Os quatro
+         comerciais vem depois. Se entrar convenio novo, ele entra no fim, a
+         menos que seja de empresa grande da regiao.
+         Lista confirmada pelo usuario em 27/08/2026, a partir da arte da
+         clinica com os sete logos. -->
     <div class="convenios">
       <div class="convenio">
         <b>PASA</b>
-        <span>Plano odontológico</span>
+        <span>Vale e Fundação Vale</span>
+      </div>
+      <div class="convenio">
+        <b>Saúde AMS</b>
+        <span>Vale</span>
       </div>
       <div class="convenio">
         <b>IPSM</b>
-        <span>Instituto de Previdência dos Servidores Militares de MG</span>
+        <span>Servidores militares de MG — PMMG e CBMMG</span>
+      </div>
+      <div class="convenio">
+        <b>Odontoprev</b>
+        <span>Rede Unna</span>
+      </div>
+      <div class="convenio">
+        <b>BB Dental</b>
+        <span>Banco do Brasil</span>
+      </div>
+      <div class="convenio">
+        <b>Bradesco Dental</b>
+        <span>Plano odontológico</span>
+      </div>
+      <div class="convenio">
+        <b>Amil Dental</b>
+        <span>Plano odontológico</span>
       </div>
     </div>
     <div class="hero__acoes">
@@ -1630,7 +1758,7 @@ h3{font-size:1.18rem}
       </details>
       <details>
         <summary>Vocês atendem plano odontológico?</summary>
-        <p>Sim. Atendemos <b>PASA</b> e <b>IPSM</b>. Se o seu plano for outro, mande uma mensagem que a gente confere para você.</p>
+        <p>Sim. Atendemos <b>PASA</b>, <b>Saúde AMS</b>, <b>IPSM</b>, <b>Odontoprev (Rede Unna)</b>, <b>BB Dental</b>, <b>Bradesco Dental</b> e <b>Amil Dental</b>. Se o seu plano for outro, mande uma mensagem que a gente confere para você.</p>
       </details>
       <details>
         <summary>Quem faz o meu tratamento?</summary>
@@ -1973,6 +2101,373 @@ h3{font-size:1.18rem}
 
   ir(0);
   girar();
+})();
+</script>
+
+<!-- ====================================================================
+     SEGUNDO SCRIPT — o palco da galeria "Por dentro da Realce".
+     Componente vindo da secao "tratamentos" do site da Larissa Martins, a
+     pedido do usuario em 27/08/2026, e SEM o bloco de legenda que existe la:
+     aqui a foto troca sozinha e nao ha titulo nem descricao embaixo dela.
+
+     ⚠️ POR QUE NAO ENTROU NO SCRIPT DE CIMA. O de cima segura coisas que a
+     pagina inteira depende (a barra do topo, o placar, o leque, o carrossel).
+     Este mexe com WebGL, que e a unica parte do site que depende de hardware e
+     de driver de video — e o candidato natural a estourar num aparelho
+     estranho. Em bloco separado, um erro aqui derruba SO a troca da foto.
+
+     A regra do site continua de pe: sem JS a pagina fica completa. Sem script
+     o quadro nunca perde o `hidden`, a grade das seis fotos continua na tela e
+     a caixa de pontos fica vazia.
+     ==================================================================== -->
+<script>
+(function(){
+  "use strict";
+
+  var palco = document.querySelector("[data-palco]");
+  if (!palco) return;
+
+  var quadro = palco.querySelector("[data-quadro]");
+  var foto   = palco.querySelector("[data-foto]");
+  var tela   = palco.querySelector("[data-tela]");
+  var elAt   = palco.querySelector("[data-atual]");
+  var elTot  = palco.querySelector("[data-total]");
+  var caixa  = palco.querySelector("[data-pontos]");
+  var grade  = palco.querySelector(".galeria");
+  if (!quadro || !foto || !tela || !caixa || !grade) return;
+
+  /* A grade e a fonte da verdade: `src` e `alt` das seis fotos estao escritos
+     nela, no HTML, e e de la que o palco copia. Nada de lista duplicada em
+     data-atributo — duas listas viram duas listas desencontradas. */
+  var fontes = Array.prototype.slice.call(grade.querySelectorAll("img")).map(function(im){
+    return { src: im.getAttribute("src"), alt: im.getAttribute("alt") || "" };
+  });
+  if (fontes.length < 2) return;
+
+  var mq = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)");
+  var semMovimento = !!(mq && mq.matches);
+
+  var DEMORA = 5200;   /* quanto tempo cada foto fica no ar */
+  var TROCA  = 1900;   /* quanto dura a bolha de vidro */
+
+  /* `pronto` segura o relogio ate o palco ter o que mostrar. Sem ele, numa
+     conexao lenta o giro automatico dispararia antes da primeira textura
+     existir — e a primeira troca ja cairia no plano B, desligando o efeito por
+     um atraso de rede que ia passar sozinho. */
+  var atual = 0, indo = false, relogio = null;
+  var visivel = false, preparado = false, pronto = false;
+
+  function pad(n){ return (n < 10 ? "0" : "") + n; }
+  if (elTot) elTot.textContent = pad(fontes.length);
+
+  /* ================= WebGL: a bolha de vidro =================
+     Um triangulo que cobre a tela inteira, duas texturas e um numero que anda
+     de 0 a 1. Dentro do circulo que cresce sai a foto NOVA, distorcida como se
+     estivesse atras de uma gota; fora dele continua a foto VELHA, intacta.
+     Codigo trazido inteiro do site da Larissa Martins — mexeu num numero aqui,
+     mexe la tambem, ou os dois sites deixam de ser o mesmo componente. */
+  var VERT =
+    "attribute vec2 aPos;varying vec2 vUv;" +
+    "void main(){vUv=aPos*0.5+0.5;gl_Position=vec4(aPos,0.0,1.0);}";
+
+  var FRAG =
+    "precision highp float;" +
+    "uniform sampler2D uT1,uT2;uniform float uProg;uniform vec2 uRes,uS1,uS2;varying vec2 vUv;" +
+    /* recorta a foto como object-fit:cover faria, pra nenhuma delas esticar */
+    "vec2 cobre(vec2 uv,vec2 ts){vec2 s=uRes/ts;float k=max(s.x,s.y);vec2 sz=ts*k;vec2 off=(uRes-sz)*0.5;return (uv*uRes-off)/sz;}" +
+    "void main(){" +
+      "vec2 uv1=cobre(vUv,uS1),uv2=cobre(vUv,uS2);" +
+      "float t=uProg*5.0;" +
+      /* 0.60 da diagonal: a bolha cobre a foto inteira por volta dos 83% e o
+         resto da animacao e o liquido ASSENTANDO. Em 0.52 o anel de refracao
+         ficava colado na moldura ate o ultimo instante e sumia de uma vez. */
+      "float raio=length(uRes)*0.60;float br=uProg*raio;" +
+      "vec2 p=vUv*uRes,c=uRes*0.5;float d=length(p-c);float nd=d/max(br,0.001);" +
+      /* `calma` derruba a amplitude da distorcao inteira ate zero no fim. Sem
+         ela a torcao ficava no maximo e era APAGADA por uma dissolucao — e
+         dissolver imagem torta pra imagem certa le como corte, nao como
+         assentar. O smoothstep garante que ela chega em zero com velocidade
+         zero: nao ha ultimo quadro em que algo ainda estava acontecendo. */
+      "float calma=1.0-smoothstep(0.55,1.0,uProg);" +
+      /* a fronteira entre foto velha e nova comeca dura (2px) e vira um
+         degrade largo, pro ultimo pedaco de foto velha se dissolver em vez de
+         ser cortado por uma linha */
+      "float borda=2.0+uRes.y*0.03*smoothstep(0.55,1.0,uProg);" +
+      "float dentro=smoothstep(br+borda,br-borda,d);" +
+      "vec2 dir=d>0.0?(p-c)/d:vec2(0.0);" +
+      /* refracao: quanto mais perto da borda da bolha, mais o pixel e puxado */
+      "float ro=0.075*pow(smoothstep(0.30,1.0,nd),1.5)*calma;" +
+      "vec2 du=uv2-dir*ro+vec2(sin(t+nd*10.0),cos(t*0.8+nd*8.0))*0.011*nd*dentro*calma;" +
+      /* aberracao cromatica: os tres canais entram deslocados, como em vidro */
+      "float ca=0.012*pow(smoothstep(0.3,1.0,nd),1.2)*calma;" +
+      "vec4 img=vec4(texture2D(uT2,du+dir*ca*1.2).r,texture2D(uT2,du+dir*ca*0.2).g,texture2D(uT2,du-dir*ca*0.8).b,1.0);" +
+      /* o brilho fino na borda da bolha — apaga junto, senao seria um risco
+         aceso na moldura bem na hora de assentar */
+      "img.rgb+=smoothstep(0.94,1.0,nd)*(1.0-smoothstep(1.0,1.02,nd))*0.10*calma;" +
+      /* rede de seguranca: o ultimo quadro tem que ser a foto limpa ao pixel */
+      "img=mix(img,texture2D(uT2,uv2),smoothstep(0.88,1.0,uProg));" +
+      "gl_FragColor=mix(texture2D(uT1,uv1),img,dentro);" +
+    "}";
+
+  var gl = null, prog = null, loc = {}, tex = [], tam = [], res = [1,1];
+
+  function compila(tipo, src){
+    var s = gl.createShader(tipo);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+  }
+
+  function iniciaGL(){
+    if (semMovimento) return false;
+    try {
+      gl = tela.getContext("webgl", { alpha:false, antialias:false, depth:false, stencil:false })
+        || tela.getContext("experimental-webgl");
+    } catch(e){ gl = null; }
+    if (!gl) return false;
+
+    var vs = compila(gl.VERTEX_SHADER, VERT), fs = compila(gl.FRAGMENT_SHADER, FRAG);
+    if (!vs || !fs) { gl = null; return false; }
+    prog = gl.createProgram();
+    gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { gl = null; return false; }
+    gl.useProgram(prog);
+
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    /* um triangulo, nao dois: cobre a tela com metade dos vertices e sem a
+       costura diagonal no meio */
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+    var a = gl.getAttribLocation(prog, "aPos");
+    gl.enableVertexAttribArray(a);
+    gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+
+    ["uT1","uT2","uProg","uRes","uS1","uS2"].forEach(function(n){
+      loc[n] = gl.getUniformLocation(prog, n);
+    });
+    gl.uniform1i(loc.uT1, 0);
+    gl.uniform1i(loc.uT2, 1);
+    /* sem isso a foto entra de cabeca pra baixo: a origem da textura em
+       OpenGL e embaixo, a de uma imagem de navegador e em cima */
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    return true;
+  }
+
+  function criaTex(img){
+    var t = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    /* CLAMP + LINEAR sem mipmap: em WebGL 1 textura que nao e potencia de dois
+       so funciona assim, e 720x728 nao e */
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    return t;
+  }
+
+  var fila = {};
+  function pega(i, aviso){
+    if (tex[i]) { aviso(true); return; }
+    if (fila[i]) { fila[i].push(aviso); return; }
+    fila[i] = [aviso];
+    var im = new Image();
+    im.decoding = "async";
+    im.onload = function(){
+      if (gl) { tex[i] = criaTex(im); tam[i] = [im.naturalWidth, im.naturalHeight]; }
+      var f = fila[i]; fila[i] = null;
+      f.forEach(function(cb){ cb(!!tex[i]); });
+    };
+    im.onerror = function(){
+      var f = fila[i]; fila[i] = null;
+      f.forEach(function(cb){ cb(false); });
+    };
+    im.src = fontes[i].src;
+  }
+
+  /* As seis fotos pesam ~155 KB juntas, e so comecam a baixar quando a secao
+     chega perto da tela — em fila de uma em uma, no tempo ocioso. Quem nunca
+     rola ate a galeria nao baixa nenhuma. */
+  function enfileira(i){
+    if (i >= fontes.length) return;
+    pega(i, function(){
+      if (window.requestIdleCallback) requestIdleCallback(function(){ enfileira(i+1); }, { timeout:2000 });
+      else setTimeout(function(){ enfileira(i+1); }, 300);
+    });
+  }
+
+  function ajusta(){
+    if (!gl) return;
+    var r = Math.min(window.devicePixelRatio || 1, 2);
+    var w = Math.max(1, Math.round(quadro.clientWidth * r));
+    var h = Math.max(1, Math.round(quadro.clientHeight * r));
+    if (tela.width === w && tela.height === h) return;
+    tela.width = w; tela.height = h;
+    gl.viewport(0, 0, w, h);
+    res = [w, h];
+    desenha(0, atual, atual);
+  }
+
+  function desenha(p, a, b){
+    if (!gl || !tex[a] || !tex[b]) return;
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex[a]);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, tex[b]);
+    gl.uniform1f(loc.uProg, p);
+    gl.uniform2f(loc.uRes, res[0], res[1]);
+    gl.uniform2f(loc.uS1, tam[a][0], tam[a][1]);
+    gl.uniform2f(loc.uS2, tam[b][0], tam[b][1]);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  function suave(p){ return p < .5 ? 4*p*p*p : 1 - Math.pow(-2*p + 2, 3)/2; }
+
+  /* ================= os pontos ================= */
+  var pontos = fontes.map(function(f, i){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "ponto";
+    b.setAttribute("aria-label", "Foto " + (i + 1) + " de " + fontes.length);
+    b.setAttribute("aria-current", i === 0 ? "true" : "false");
+    b.addEventListener("click", function(){ paraRelogio(); vai(i); });
+    caixa.appendChild(b);
+    return b;
+  });
+
+  function marca(n){
+    pontos.forEach(function(b, i){ b.setAttribute("aria-current", i === n ? "true" : "false"); });
+    if (elAt) elAt.textContent = pad(n + 1);
+    /* o alt acompanha a foto: quem usa leitor de tela ouve o comodo que esta
+       no palco, nao o da primeira foto pra sempre */
+    foto.alt = fontes[n].alt;
+  }
+
+  function paraRelogio(){ if (relogio) { clearTimeout(relogio); relogio = null; } }
+
+  function ligaRelogio(){
+    paraRelogio();
+    if (semMovimento || !visivel || indo || !pronto) return;
+    relogio = setTimeout(function(){ relogio = null; vai(atual + 1); }, DEMORA);
+  }
+
+  /* ================= a troca ================= */
+  function fade(n){
+    /* saida de emergencia: sem WebGL, ou quando a foto nova nao carregou.
+       Volta pro <img> e troca em dissolucao. */
+    palco.classList.remove("palco--gl");
+    palco.classList.add("palco--trocando");
+    setTimeout(function(){
+      foto.src = fontes[n].src;
+      palco.classList.remove("palco--trocando");
+      indo = false;
+      if (visivel) ligaRelogio();
+    }, semMovimento ? 0 : 300);
+  }
+
+  function vai(n){
+    n = (n + fontes.length) % fontes.length;
+    if (indo || n === atual) return;
+    var de = atual;
+    indo = true;
+    paraRelogio();
+    marca(n);
+    atual = n;
+
+    if (!gl) { fade(n); return; }
+
+    pega(n, function(ok){
+      /* foto que nao carrega desliga o efeito de vez: desenhar num canvas que
+         acabou de ser escondido deixaria o palco congelado na foto anterior */
+      if (!ok || !tex[de]) { gl = null; fade(n); return; }
+      var ini = 0;
+      requestAnimationFrame(function passo(t){
+        if (!ini) ini = t;
+        var p = Math.min((t - ini) / TROCA, 1);
+        desenha(suave(p), de, n);
+        if (p < 1) { requestAnimationFrame(passo); return; }
+        /* assenta: as duas texturas viram a nova e o progresso volta a zero,
+           senao o proximo quadro estatico ainda carregaria a bolha */
+        desenha(0, n, n);
+        indo = false;
+        if (visivel) ligaRelogio();
+      });
+    });
+  }
+
+  /* ================= ligacoes ================= */
+  var ant = palco.querySelector("[data-ant]"), prox = palco.querySelector("[data-prox]");
+  if (ant)  ant.addEventListener("click",  function(){ paraRelogio(); vai(atual - 1); });
+  if (prox) prox.addEventListener("click", function(){ paraRelogio(); vai(atual + 1); });
+
+  /* ⚠️ O PAUSAR FICA SO NA FAIXA DE PONTOS, nunca no palco inteiro. E a mesma
+     armadilha ja corrigida no carrossel dos depoimentos: a secao fica no meio
+     da pagina, quem rola de mouse deixa o cursor parado em cima da area
+     grande, o giro automatico nunca acontece e parece defeito. */
+  caixa.addEventListener("mouseenter", paraRelogio);
+  caixa.addEventListener("mouseleave", function(){ if (!indo) ligaRelogio(); });
+  palco.addEventListener("focusin", paraRelogio);
+  palco.addEventListener("focusout", function(){ if (!indo) ligaRelogio(); });
+  document.addEventListener("visibilitychange", function(){
+    if (document.hidden) paraRelogio(); else if (visivel && !indo) ligaRelogio();
+  });
+
+  /* arrastar o dedo em cima da foto */
+  var x0 = null, y0 = null;
+  quadro.addEventListener("touchstart", function(e){
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+  }, { passive:true });
+  quadro.addEventListener("touchend", function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) { paraRelogio(); vai(atual + (dx < 0 ? 1 : -1)); }
+    x0 = y0 = null;
+  }, { passive:true });
+
+  var espera = null;
+  window.addEventListener("resize", function(){
+    clearTimeout(espera);
+    espera = setTimeout(function(){
+      ajusta();
+      if (!indo) desenha(0, atual, atual);
+    }, 150);
+  });
+
+  /* ================= entrada =================
+     A troca de grade por palco acontece AQUI, e nao no `.js` do <head>: se o
+     script morresse no meio, a grade ja teria sumido e a secao ficaria vazia.
+     Trocar so depois de tudo montado e o que garante que nunca ha buraco. */
+  foto.src = fontes[0].src;
+  foto.alt = fontes[0].alt;
+  quadro.removeAttribute("hidden");
+  palco.classList.add("palco--on");
+
+  function libera(){ pronto = true; if (visivel && !indo) ligaRelogio(); }
+
+  function prepara(){
+    if (preparado) return;
+    preparado = true;
+    if (!iniciaGL()) { libera(); return; }   /* segue no <img>, em fade */
+    ajusta();
+    pega(0, function(ok){
+      if (!ok) { gl = null; libera(); return; }  /* fica o <img>, que ja mostra a foto 1 */
+      ajusta();
+      desenha(0, 0, 0);
+      palco.classList.add("palco--gl");
+      libera();
+      enfileira(1);
+    });
+  }
+
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function(is){
+      is.forEach(function(e){
+        visivel = e.isIntersecting;
+        if (visivel) { prepara(); if (!indo) ligaRelogio(); }
+        else paraRelogio();
+      });
+    }, { threshold: 0.25 }).observe(quadro);
+  } else {
+    visivel = true; prepara(); ligaRelogio();
+  }
 })();
 </script>
 
