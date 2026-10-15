@@ -11,8 +11,43 @@
           fundo se houver quem devolva o creme na rolagem.
      Sem a classe (JS desligado, script com erro, leitor antigo) as estrelas ja
      aparecem cheias e a barra ja aparece creme — a pagina fica inteira e
-     legivel, so sem o efeito. -->
-<script>document.documentElement.className+=" js";</script>
+     legivel, so sem o efeito.
+
+     O resto do script e a ABERTURA (pedido de 15/10/2026). Fica aqui, e nao
+     no fim da pagina, porque a cortina tem que estar na tela no primeiro
+     quadro, antes de o hero pintar. Regras: uma vez por sessao, nunca com
+     ancora na URL, nunca em aba que abriu em segundo plano. Qualquer toque,
+     tecla, roda do mouse ou arraste pula. Pra remover a abertura, apagar da
+     linha "ABERTURA" ate o fim da funcao (o " js" fica). -->
+<script>
+(function(d){
+  d.className += " js";
+  /* ---- ABERTURA ---- */
+  var calma = false, visto = false;
+  try { calma = matchMedia("(prefers-reduced-motion: reduce)").matches; } catch(e){}
+  try { visto = sessionStorage.getItem("realce-abertura") === "1"; } catch(e){}
+  if (visto || location.hash || document.visibilityState === "hidden") return;
+  try { sessionStorage.setItem("realce-abertura", "1"); } catch(e){}
+  d.className += calma ? " com-intro intro-trava intro-calma" : " com-intro intro-trava";
+  /* SOBE tem que bater com o animation-delay da .intro no CSS (2,25s e 1,3s) */
+  var SOBE = calma ? 1300 : 2250, t0 = Date.now(), pulou = false;
+  var ev = ["click", "keydown", "wheel", "touchmove"];
+  function solta(){ d.classList.remove("intro-trava"); }
+  function tira(){ var i = document.getElementById("intro"); if (i && i.parentNode) i.parentNode.removeChild(i); }
+  function desliga(){ for (var k = 0; k < ev.length; k++) document.removeEventListener(ev[k], pula, true); }
+  function pula(){
+    desliga();
+    if (pulou || Date.now() - t0 > SOBE - 150) return;   /* ja esta saindo sozinha */
+    pulou = true;
+    d.classList.add("intro-pulou");
+    setTimeout(solta, 400);
+    setTimeout(tira, 1000);
+  }
+  for (var k = 0; k < ev.length; k++) document.addEventListener(ev[k], pula, { capture: true, passive: true });
+  setTimeout(function(){ desliga(); if (!pulou) solta(); }, SOBE + 450);
+  setTimeout(function(){ if (!pulou) tira(); }, SOBE + 1200);
+})(document.documentElement);
+</script>
 
 <title>Realce Odontologia Integrada — dentista e ortodontista em João Monlevade/MG</title>
 <meta name="description" content="Clínica odontológica na Rua Negrão de Lima, 51 — Alvorada, João Monlevade/MG. Ortodontia, clareamento, implantes, limpeza e restaurações com a Dra. Fernanda Magalhães, CRO-MG 44763. 4,9 no Google. Atendemos PASA, AMS e IPSM.">
@@ -207,6 +242,143 @@ h3{font-size:1.18rem}
    pediu pra encolher. */
 .btn--peq{padding:.68rem 1.3rem;font-size:.92rem;gap:.45rem}
 .btn--peq .btn__ico{width:16px;height:16px}
+
+/* =====================================================================
+   ABERTURA
+   ---------------------------------------------------------------------
+   Pedido do usuario em 15/10/2026: "coloque uma animacao inicial". Pra
+   remover: apagar o <div class="intro"> do HTML, este bloco de CSS e o
+   trecho marcado no script do <head>. O resto do site nao depende de nada
+   daqui.
+
+   NAO E O REVEAL QUE SAIU EM 19/08. Aquele escondia conteudo ate a pessoa
+   rolar, em toda a pagina, toda visita. Esta acontece uma vez por sessao,
+   dura 2,2s, pula com qualquer toque, tecla, roda do mouse ou arraste, e
+   nunca aparece pra quem chega por link com ancora (#convenios).
+
+   A sequencia e a propria arte da logo dela:
+     0,00s  os fios dourados do fundo da arte atravessam o creme
+     0,10s  os dois lobos do dente sao desenhados em traco, o perfil depois
+     0,55s  REALCE sobe letra por letra, de tras de uma mascara
+     0,95s  o dente e o rosto acendem no dourado, o traco apaga
+     1,25s  ODONTOLOGIA INTEGRADA assenta
+     1,70s  um reflexo passa por dentro das letras
+     2,25s  a cortina sobe com a borda de baixo curva e um fio dourado,
+            e o texto do hero assenta 28px
+
+   O creme e o mesmo #FDF8F2 do arquivo da logo e da barra do topo.
+
+   O tempo de 2,25s esta em DOIS lugares: no animation-delay da .intro aqui
+   e na constante SOBE do script do <head>. Mexeu num, mexe no outro.
+
+   Quem sustenta a saida e o CSS, nao o JS: a cortina sobe por tempo mesmo
+   se o script do fim da pagina quebrar. O script do <head> so decide se
+   acontece, solta a rolagem e tira o bloco do DOM. Se a animacao nem rodar
+   (navegador velho), o bloco sai do DOM aos 3,45s do mesmo jeito.
+
+   "Reduzir movimento" ligado: versao calma. Logo parada aparece, a tela
+   dissolve aos 1,3s. Sem traco, sem cortina, sem letra subindo. */
+.intro{display:none}
+.intro-trava,.intro-trava body{overflow:hidden}
+/* sem reservar o espaco da barra de rolagem, o hero inteiro pularia 15px
+   pro lado quando a trava soltasse. O creme no html pinta essa faixa. */
+.intro-trava{scrollbar-gutter:stable;background:var(--creme)}
+
+.com-intro .intro{
+  display:block;position:fixed;inset:0;z-index:200;cursor:pointer;
+  background:radial-gradient(ellipse 60% 48% at 50% 50%,#FFFDF9 0%,var(--creme) 70%);
+  animation:intro-sobe .95s cubic-bezier(.76,0,.24,1) 2.25s forwards;
+}
+/* borda de baixo curva, com o fio dourado da arte acompanhando a curva. So
+   aparece quando a cortina sobe: antes disso esta abaixo da tela. */
+.intro::after{
+  content:"";position:absolute;left:-8%;right:-8%;top:calc(100% - 1px);height:min(14vh,18vw);
+  background:var(--creme);border-radius:0 0 50% 50% / 0 0 100% 100%;
+  box-shadow:0 3px 0 -1px rgba(201,169,106,.75),0 26px 30px -14px rgba(42,32,25,.28);
+}
+/* ⚠️ a sombra tem spread negativo de proposito: com blur maior que o
+   deslocamento ela vaza pra CIMA da curva e pinta uma faixa cinza no pe da
+   cortina, por cima do creme. Aconteceu na primeira versao. */
+@keyframes intro-sobe{to{translate:0 calc(-100% - 15vh);visibility:hidden}}
+@keyframes intro-sobe-ja{to{translate:0 calc(-100% - 15vh);visibility:hidden}}
+
+.intro__fios{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.intro__fio{
+  fill:none;stroke:url(#realce-fio);stroke-width:2.2;stroke-linecap:round;
+  stroke-dasharray:1;stroke-dashoffset:1;opacity:.75;
+  animation:intro-traca 1.5s cubic-bezier(.45,0,.2,1) forwards;
+  animation-delay:calc(var(--i,0) * .12s);
+}
+.intro__fio--fino{stroke-width:1.2;opacity:.55}
+
+.intro__palco{
+  position:absolute;inset:0;display:grid;place-items:center;padding:1.5rem;
+  animation:intro-palco-sai .95s cubic-bezier(.76,0,.24,1) 2.25s forwards;
+}
+@keyframes intro-palco-sai{to{translate:0 -12vh;opacity:0}}
+@keyframes intro-palco-sai-ja{to{translate:0 -12vh;opacity:0}}
+.intro__logo{width:min(86vw,600px);height:auto;overflow:visible}
+
+/* o traco: os lobos e o perfil sao desenhados com dasharray sobre
+   pathLength=1, que esta no <path> do <defs>. O stroke e herdado pelo clone
+   do <use>, entao basta animar o dashoffset aqui. */
+.intro__traco{
+  fill:none;stroke:#B08A50;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:1;stroke-dashoffset:1;
+  animation:intro-traca .95s cubic-bezier(.65,0,.35,1) forwards;
+  animation-delay:calc(.1s + var(--i,0) * .12s);
+}
+.intro__traco--rosto{stroke:#D9BF88;animation-duration:.85s;animation-delay:.4s}
+.intro__tracos{animation:intro-some .45s 1.25s ease forwards}
+.intro__dente{opacity:0;animation:intro-aparece .5s .95s ease forwards}
+
+/* REALCE sobe de tras da faixa (clipPath fixo), letra por letra. O translate
+   e em unidade do viewBox: 300 tira a letra inteira de dentro da faixa. */
+.intro__letra{
+  translate:0 300px;
+  animation:intro-letra .75s cubic-bezier(.2,.75,.2,1) forwards;
+  animation-delay:calc(.55s + var(--i) * .07s);
+}
+@keyframes intro-letra{to{translate:0 0}}
+
+.intro__sub{opacity:0;translate:0 14px;animation:intro-assenta .6s cubic-bezier(.2,.7,.2,1) 1.25s forwards}
+@keyframes intro-assenta{to{opacity:1;translate:0 0}}
+
+/* o reflexo e um retangulo de luz recortado pelo desenho das letras */
+.intro__brilho{transform:skewX(-18deg);animation:intro-brilho .65s ease-in-out 1.7s forwards}
+@keyframes intro-brilho{to{translate:1720px 0}}
+
+@keyframes intro-traca{to{stroke-dashoffset:0}}
+@keyframes intro-some{to{opacity:0}}
+@keyframes intro-aparece{to{opacity:1}}
+
+/* o hero assenta enquanto a cortina sobe. `translate` e nao `transform`,
+   e `backwards` e nao `forwards`: depois de terminar a animacao nao segura
+   mais nada, e o hero volta a ser exatamente o de sempre. */
+.com-intro .hero .env{animation:intro-hero .95s cubic-bezier(.2,.7,.2,1) 2.4s backwards}
+@keyframes intro-hero{from{translate:0 28px}}
+@keyframes intro-hero-ja{from{translate:0 28px}}
+
+/* pulou (toque, tecla, roda, arraste): mesmos movimentos de saida, ja.
+   Nome de animacao novo de proposito: trocar so o delay da animacao em
+   curso faria o navegador saltar direto pro fim. */
+.intro-pulou .intro{animation:intro-sobe-ja .75s cubic-bezier(.76,0,.24,1) forwards}
+.intro-pulou .intro__palco{animation:intro-palco-sai-ja .75s cubic-bezier(.76,0,.24,1) forwards}
+.intro-pulou .hero .env{animation:intro-hero-ja .8s cubic-bezier(.2,.7,.2,1) .12s backwards}
+
+/* versao calma: com "reduzir movimento" ligado a abertura so dissolve */
+.intro-calma .intro__fio{stroke-dashoffset:0;animation:none}
+.intro-calma .intro__tracos{display:none}
+.intro-calma .intro__dente,.intro-calma .intro__sub{opacity:1;translate:none;animation:none}
+.intro-calma .intro__letra{translate:none;animation:none}
+.intro-calma .intro__brilho{display:none}
+.intro-calma .intro__palco{opacity:0;animation:intro-aparece .5s .05s ease forwards}
+.intro-calma .intro{animation:intro-dissolve .5s ease 1.3s forwards}
+.intro-calma .intro::after{display:none}
+.intro-calma .hero .env{animation:none}
+.intro-calma.intro-pulou .intro{animation:intro-dissolve-ja .35s ease forwards}
+@keyframes intro-dissolve{to{opacity:0;visibility:hidden}}
+@keyframes intro-dissolve-ja{to{opacity:0;visibility:hidden}}
 
 /* ====================== topo ======================
    O fundo do topo e exatamente o creme do arquivo da logo, pra que o
@@ -1207,6 +1379,69 @@ h3{font-size:1.18rem}
 </style>
 </head>
 <body>
+
+<!-- ===== abertura (remover: apagar este bloco, o CSS "ABERTURA" e o trecho
+     marcado no script do <head>) =====
+     A logo e vetor tracado do JPG original dela (potrace), nao um desenho
+     nosso: dois lobos do dente, o perfil, as seis letras de REALCE e o
+     subtitulo, cada um num <path> pra animar separado. -->
+<div class="intro" id="intro" aria-hidden="true">
+  <svg class="intro__fios" viewBox="0 0 1600 900" preserveAspectRatio="none" focusable="false">
+    <defs>
+      <linearGradient id="realce-fio" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#C9A96A" stop-opacity="0"/>
+        <stop offset=".35" stop-color="#C9A96A"/>
+        <stop offset=".7" stop-color="#E6CF9C"/>
+        <stop offset="1" stop-color="#C9A96A" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <path class="intro__fio" style="--i:0" pathLength="1" d="M-40 760C300 690 620 900 980 790S1420 600 1660 560"/>
+    <path class="intro__fio" style="--i:1" pathLength="1" d="M-40 820C360 760 700 930 1060 840S1460 690 1660 650"/>
+    <path class="intro__fio intro__fio--fino" style="--i:2" pathLength="1" d="M220 940C520 800 900 860 1200 760S1520 640 1660 610"/>
+    <path class="intro__fio" style="--i:1" pathLength="1" d="M1640 120C1300 190 980 20 640 110S180 260 -60 300"/>
+    <path class="intro__fio intro__fio--fino" style="--i:2" pathLength="1" d="M1640 60C1340 150 1040 -10 700 60S260 190 -60 210"/>
+  </svg>
+  <div class="intro__palco">
+    <svg class="intro__logo" viewBox="30 36 1784 474" focusable="false">
+      <defs>
+        <linearGradient id="realce-ouro" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#CFAA6B"/>
+          <stop offset=".55" stop-color="#B08A50"/>
+          <stop offset="1" stop-color="#C39C5F"/>
+        </linearGradient>
+        <linearGradient id="realce-luz" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#FFF6E2" stop-opacity="0"/>
+          <stop offset=".5" stop-color="#FFF6E2" stop-opacity=".85"/>
+          <stop offset="1" stop-color="#FFF6E2" stop-opacity="0"/>
+        </linearGradient>
+        <path id="realce-d1" pathLength="1" d="M114 88C109 88,106 89,104 89C102 90,100 91,100 91C98 91,86 96,84 98C71 105,61 115,55 125C52 130,47 142,46 146C45 149,44 152,44 154C38 169,36 189,37 207C38 212,38 219,38 222C38 226,39 230,39 231C40 232,40 235,40 238C40 240,41 243,41 244C42 245,42 248,42 250C42 251,43 253,43 254C43 255,44 258,44 260C45 265,46 270,47 273C48 273,48 275,49 277C49 279,49 280,49 281C50 282,51 285,51 287C53 294,57 305,60 312C69 338,71 342,77 352C79 356,82 363,84 367C86 371,89 375,90 377C93 382,99 391,102 396C108 407,111 410,112 410C112 409,112 408,106 397C103 391,100 385,99 382C99 380,96 375,94 371C91 364,89 361,85 351C84 350,82 344,80 339C78 334,75 326,73 321C71 317,69 312,69 310C67 307,63 292,61 287C61 285,60 281,59 279C58 277,57 274,57 272C56 271,56 269,56 268C56 267,56 265,55 264C54 261,54 258,51 246C51 244,51 241,50 239C50 237,50 231,49 227C47 213,47 180,49 172C50 170,50 167,51 164C52 158,54 153,55 149C56 148,56 147,56 146C56 146,62 133,65 129C73 116,83 108,97 103C104 100,107 99,117 98C127 97,143 97,151 99C153 100,155 100,157 100C162 101,175 105,182 108C186 110,187 110,187 109C187 109,185 108,179 103C171 98,155 92,148 90C147 90,145 90,145 89C142 88,126 87,114 88"/>
+        <path id="realce-d2" pathLength="1" d="M256 44C246 45,230 52,230 53C229 54,232 54,234 53C235 53,237 52,238 52C240 52,242 52,244 51C247 50,265 50,272 50C281 51,285 52,296 56C310 61,322 72,330 85C336 95,339 102,341 108C343 116,345 123,345 126C345 127,345 130,345 133C347 142,347 175,345 186C345 188,344 192,344 195C344 198,343 201,343 203C343 204,342 207,342 210C341 212,341 215,340 217C340 218,340 221,339 223C339 225,338 228,338 229C337 233,334 243,334 245C333 246,333 248,332 249C331 253,326 267,325 269C325 270,324 272,324 273C323 275,322 278,321 281C320 284,318 287,318 289C314 298,308 312,303 322C295 335,294 337,290 344C287 348,285 352,284 353C281 358,271 372,264 380C256 388,253 391,246 394L241 397 235 397C228 397,226 396,221 391C217 388,210 377,206 370C206 368,204 365,203 362C202 360,200 355,199 352C196 347,195 345,194 347C194 348,194 356,195 358C196 359,196 360,196 362C197 370,205 387,210 393C218 402,225 406,235 406C245 406,254 401,269 386C279 376,281 374,290 361C297 350,311 326,315 317C316 314,319 308,321 303C324 297,326 293,326 293C326 292,329 285,333 275C334 272,339 257,340 254C340 253,340 251,341 250C342 247,343 242,345 236C346 234,347 231,347 229C348 228,348 226,348 225C348 224,348 222,349 220C349 218,350 215,350 214C351 212,351 210,351 208C352 207,352 204,353 202C353 199,354 195,354 191C354 188,355 184,355 182C356 176,356 144,355 135C355 132,354 127,354 125C353 116,347 96,342 88C338 81,337 79,335 75C324 60,308 50,288 45C278 42,265 42,256 44"/>
+        <path id="realce-rosto" pathLength="1" d="M192 49C192 49,193 51,197 56C198 57,200 59,200 61C201 62,202 65,203 66C205 70,207 76,208 77C208 78,208 80,209 80C210 82,211 91,210 102C210 128,212 134,224 144C231 150,234 152,247 158C259 164,265 168,265 172C265 175,263 176,257 183C254 186,252 189,252 189C252 189,251 190,250 191C250 192,249 195,248 197L247 200 248 204C250 209,252 211,258 217C264 223,264 223,263 226C263 228,260 232,257 234C251 238,251 240,257 241C264 242,266 246,262 251C260 254,257 261,257 262C257 262,258 265,259 267C264 279,264 279,264 284C263 290,263 292,259 296C254 301,242 307,235 308C233 308,231 308,229 309C228 309,223 309,220 310C216 310,212 310,211 310C209 310,206 311,204 311C200 312,193 314,190 315C189 315,188 316,186 316C179 318,170 325,164 331C153 342,148 353,148 368C147 380,147 380,148 381C149 382,150 381,150 377C150 375,151 374,151 373C153 371,154 369,155 366C156 362,160 351,162 347C164 342,166 339,172 333C185 321,195 317,223 316C233 315,240 315,243 314C243 314,246 313,248 312C260 309,266 304,272 292C275 286,275 282,271 271C267 261,267 262,271 256C277 246,277 244,273 239C270 236,270 235,272 231C274 228,274 227,274 223L274 219 269 214C263 208,261 205,260 201C259 195,261 191,269 182C274 176,275 175,275 172C275 165,269 159,258 154C252 151,244 147,242 146C241 146,239 144,238 143C231 139,226 133,224 126C223 125,223 123,222 122C221 120,221 118,220 111C219 98,218 90,214 79C214 78,213 75,213 74C213 73,212 71,211 70C210 69,210 67,210 66C210 64,209 64,208 63C207 63,206 61,205 60C204 59,202 57,201 56C200 55,200 54,200 54C200 54,198 53,197 52C195 51,194 50,193 49C193 49,192 49,192 49"/>
+      <path id="realce-l1" d="M433 113C433 114,433 114,435 117C438 120,439 123,441 132L442 140 442 221C443 347,442 356,434 363C432 365,432 366,433 367C434 368,481 368,483 367C486 367,486 365,483 363C480 360,478 353,476 340C475 332,475 311,475 218C476 127,476 122,477 121L477 120 506 120C537 119,539 120,547 122C564 128,575 139,579 158C581 167,581 181,579 189C574 207,567 218,551 231C541 239,533 248,530 254C522 269,529 291,554 324C564 338,585 360,593 365L597 368 624 368C650 368,652 368,653 367C655 365,654 364,649 362C640 360,624 348,605 332C599 327,580 308,575 302C574 300,571 297,569 295C560 284,550 271,546 263C544 259,544 258,544 255C544 246,549 241,575 227C584 222,595 213,601 206C611 195,615 185,615 171C615 156,611 144,601 135C591 125,582 120,565 116C550 112,545 112,485 112C434 112,434 112,433 113"/>
+      <path id="realce-l2" d="M671 112C669 113,669 114,672 116C676 121,677 123,678 134C679 144,680 333,678 344C677 356,675 360,672 363C669 365,669 366,672 367C674 368,836 368,837 367C839 366,840 349,838 347C837 345,837 345,830 348C824 351,816 354,811 355C809 355,807 356,806 356C805 356,801 357,785 359C777 360,738 360,733 359C721 356,716 351,713 339L712 334 712 287C712 261,712 240,713 239C713 237,714 237,733 237C761 237,772 238,783 242C792 245,792 245,792 233C793 224,793 223,792 222L791 221 785 223C771 227,763 228,734 229C717 229,714 229,713 228C713 227,713 220,712 175L712 122 713 121L715 120 744 120C773 120,774 120,786 121C807 124,812 125,821 130C830 134,830 134,830 123C830 115,830 113,828 112C828 112,673 112,671 112"/>
+      <path id="realce-l3" d="M975 107C974 108,973 110,972 113C971 116,969 122,967 127C957 151,955 157,953 161C951 168,944 184,940 194C937 203,931 216,923 236C921 241,917 251,915 259C907 278,905 285,901 293C900 297,896 305,894 310C892 315,890 323,888 326C887 330,884 336,883 339C879 349,875 357,871 361C865 367,867 368,879 368C890 367,890 367,889 363C887 357,889 349,903 316C905 311,907 305,908 302C911 293,912 290,913 289C914 289,917 288,966 289L1017 289 1019 290C1019 291,1020 292,1020 292C1020 293,1021 296,1022 298C1023 300,1026 305,1027 310C1043 351,1044 357,1039 363C1037 365,1037 366,1039 367C1040 368,1093 368,1094 367C1096 366,1096 364,1092 363C1089 361,1087 358,1083 353C1079 347,1076 340,1066 317C1065 312,1062 305,1060 302C1058 298,1056 291,1054 288C1053 284,1050 277,1048 273C1043 261,1043 260,1040 252C1036 243,1024 214,1017 197C1016 193,1012 185,1010 179C999 153,996 146,993 138C991 133,988 127,987 123C980 106,978 104,975 107M963 159C963 160,962 162,962 163C961 164,960 166,960 167C959 168,958 172,956 175C955 179,952 186,950 192C948 198,944 207,942 212C940 218,936 226,935 231C933 236,930 242,930 243C929 245,928 249,927 252C925 255,923 262,921 268C918 273,917 278,917 279C917 280,919 281,966 281C1010 281,1012 280,1014 280L1015 279 1013 274C1012 271,1010 266,1009 263C1008 260,1005 252,1002 247C1000 241,996 230,993 223C990 215,986 205,984 201C978 186,970 164,968 160C966 156,965 155,963 159"/>
+      <path id="realce-l4" d="M1140 113C1132 113,1126 113,1126 113C1125 113,1126 116,1128 117C1131 120,1132 126,1134 138C1134 141,1134 144,1134 144C1135 145,1135 327,1134 336C1133 351,1131 358,1127 362C1125 365,1125 366,1126 367C1128 369,1292 369,1294 367C1294 366,1295 365,1295 357C1295 345,1294 344,1287 348C1274 355,1255 358,1230 359C1183 361,1174 359,1169 345C1168 340,1168 321,1168 234C1168 158,1168 150,1169 136C1170 125,1172 121,1176 117C1178 114,1179 113,1176 112C1175 112,1161 112,1140 113"/>
+      <path id="realce-l5" d="M1408 110C1381 112,1354 124,1335 143C1325 152,1319 161,1312 175C1299 200,1295 235,1300 266C1307 304,1325 333,1356 352C1391 375,1437 377,1475 358C1489 352,1507 339,1516 329C1524 320,1526 317,1525 315C1523 313,1522 314,1516 320C1504 331,1492 339,1480 344C1443 357,1402 350,1375 326C1357 310,1344 290,1336 265C1329 244,1327 209,1332 188C1334 180,1340 164,1345 156C1354 142,1369 130,1387 123C1402 117,1424 116,1440 121C1449 124,1457 128,1469 135C1479 142,1484 146,1494 158C1499 163,1499 164,1501 162C1503 161,1515 141,1515 139C1515 137,1496 126,1482 120C1460 112,1432 108,1408 110"/>
+      <path id="realce-l6" d="M1557 112C1555 113,1555 114,1558 116C1562 121,1562 123,1564 138C1565 145,1565 324,1565 336C1563 353,1562 358,1557 363C1555 365,1555 366,1557 367C1558 368,1712 368,1719 368C1724 367,1724 367,1724 357C1724 345,1724 345,1716 349C1705 354,1694 357,1673 359C1659 360,1625 361,1619 359C1608 357,1602 351,1599 340L1598 335 1598 287C1598 244,1598 238,1599 238C1600 237,1629 237,1643 238C1658 239,1663 240,1671 243C1674 245,1676 245,1677 244C1678 243,1678 223,1677 222C1676 221,1675 221,1671 223C1659 227,1645 229,1616 229C1603 229,1600 229,1599 228L1598 227 1598 175C1598 124,1598 122,1599 121C1602 118,1661 119,1682 123C1685 123,1688 124,1689 124C1694 125,1702 127,1707 130C1715 134,1715 134,1715 122L1715 113 1713 113C1712 112,1559 111,1557 112"/>
+        <clipPath id="realce-faixa"><rect x="400" y="96" width="1360" height="290"/></clipPath>
+        <clipPath id="realce-nome" clip-rule="evenodd"><use href="#realce-l1"/><use href="#realce-l2"/><use href="#realce-l3"/><use href="#realce-l4"/><use href="#realce-l5"/><use href="#realce-l6"/></clipPath>
+      </defs>
+      <g class="intro__tracos">
+        <use class="intro__traco" href="#realce-d1"/>
+        <use class="intro__traco" style="--i:1" href="#realce-d2"/>
+        <use class="intro__traco intro__traco--rosto" href="#realce-rosto"/>
+      </g>
+      <g class="intro__dente" fill-rule="evenodd">
+        <use href="#realce-d1" fill="url(#realce-ouro)"/>
+        <use href="#realce-d2" fill="url(#realce-ouro)"/>
+        <use href="#realce-rosto" fill="#E3CC9C"/>
+      </g>
+      <g clip-path="url(#realce-faixa)" fill="url(#realce-ouro)" fill-rule="evenodd"><use class="intro__letra" style="--i:0" href="#realce-l1"/><use class="intro__letra" style="--i:1" href="#realce-l2"/><use class="intro__letra" style="--i:2" href="#realce-l3"/><use class="intro__letra" style="--i:3" href="#realce-l4"/><use class="intro__letra" style="--i:4" href="#realce-l5"/><use class="intro__letra" style="--i:5" href="#realce-l6"/></g>
+      <g clip-path="url(#realce-nome)"><rect class="intro__brilho" x="160" y="90" width="240" height="300" fill="url(#realce-luz)"/></g>
+      <path class="intro__sub" fill="#B08A50" fill-rule="evenodd" d="M595 441C587 442,581 446,578 451C568 464,569 480,580 491C585 496,589 498,595 499C614 503,629 493,633 476C638 454,618 436,595 441M762 441C745 442,734 454,735 471C735 480,738 486,744 492C750 497,756 500,767 500C773 500,776 499,782 496C797 488,802 466,791 452C784 443,774 439,762 441M854 441C838 442,828 453,828 469C828 487,837 498,853 500C865 501,873 499,880 492C885 487,885 485,886 478C886 470,887 471,873 470C856 470,853 470,853 473C853 477,854 477,866 477C877 477,879 477,879 480C879 485,872 491,865 492C849 496,837 487,836 471C835 460,842 449,852 447C861 446,870 448,874 454C876 455,877 457,877 458C877 460,879 461,881 460C884 459,884 458,882 454C878 445,867 439,854 441M1387 441C1378 443,1370 450,1366 459C1364 466,1365 478,1368 485C1374 497,1388 502,1404 499C1411 497,1418 491,1421 486C1422 484,1423 475,1423 473C1422 471,1421 471,1406 471C1393 471,1393 471,1392 472C1391 473,1391 475,1392 476C1393 477,1394 477,1403 477C1416 477,1417 478,1414 484C1406 497,1383 497,1376 483C1368 468,1374 452,1388 448C1399 445,1409 449,1413 457C1414 460,1416 461,1418 460C1421 458,1421 456,1417 450C1411 442,1398 438,1387 441M326 442C314 445,305 457,305 470C305 474,307 482,308 485C310 487,315 493,317 494C319 495,327 498,329 498C329 498,331 498,333 498C337 499,345 498,350 495C361 490,366 481,366 469C366 463,366 463,362 456C357 445,340 438,326 442M451 441C450 442,450 443,450 463L449 484 448 484C447 485,445 483,437 475C432 469,426 462,423 460C420 457,416 452,413 448C406 441,403 439,402 443C401 444,401 497,401 498C402 499,405 500,406 499C408 499,409 497,408 490C408 486,408 477,408 470C409 452,408 452,419 465C422 468,427 474,431 477C434 481,440 487,443 491C450 499,451 499,454 499C457 500,457 501,457 470L457 442 456 441C455 440,452 440,451 441M491 441C490 442,490 443,490 444C490 448,491 448,502 448C511 448,511 448,512 449C513 450,513 453,513 474C513 497,513 498,514 499C515 500,518 500,520 499L521 498 521 474C521 460,521 451,521 450C522 448,525 448,534 448C543 447,544 447,544 444C544 441,544 441,517 441C494 440,492 440,491 441M1207 441C1205 442,1205 445,1207 447C1207 448,1208 448,1217 448C1226 448,1226 448,1227 449C1228 450,1228 451,1228 474C1228 493,1228 497,1229 498C1230 499,1235 499,1235 498C1236 498,1236 492,1236 474C1236 452,1236 450,1237 449C1238 448,1238 448,1248 448C1259 448,1259 448,1259 444C1259 441,1259 441,1232 441C1219 441,1208 441,1207 441M1623 441C1621 441,1621 443,1621 471C1621 497,1621 498,1622 499C1624 500,1649 499,1654 498C1667 495,1676 484,1676 470C1676 456,1667 446,1654 442C1650 441,1626 440,1623 441M144 442C128 447,120 460,123 477C125 486,133 494,142 497C151 500,152 500,159 499C167 497,174 493,179 485C186 473,185 463,177 452C170 443,156 439,144 442M220 442C219 442,219 442,219 471L219 497 220 498C221 498,225 498,235 498C249 498,251 497,259 494C268 490,274 477,272 465C270 453,262 444,249 442C243 441,222 441,220 442M669 442C669 442,669 445,668 461C668 472,668 484,668 489C668 501,665 500,689 500C706 500,707 499,708 499C709 497,709 495,708 494C706 492,706 492,692 493C679 493,677 493,677 492C676 491,676 489,676 467C676 443,676 442,675 442C673 441,670 441,669 442M922 442C921 443,921 497,922 498C923 499,927 499,928 498C929 497,929 444,928 442C927 441,923 441,922 442M987 442C986 443,980 456,975 465C974 468,972 473,970 476C960 497,959 497,961 499C962 500,965 500,966 499C967 498,969 495,970 492C972 488,973 487,974 486C976 486,1002 486,1004 487C1005 487,1006 488,1008 492C1011 498,1012 499,1016 499C1019 499,1019 497,1016 492C1015 490,1012 485,1010 481C1004 467,991 442,990 442C989 441,988 441,987 442M1072 442C1071 443,1071 444,1071 470L1071 497 1072 498C1073 499,1074 500,1075 500C1079 500,1079 501,1079 470C1079 439,1079 441,1075 441C1073 441,1072 441,1072 442M1118 442C1117 443,1117 495,1118 497C1119 500,1124 500,1125 498C1125 498,1125 488,1125 478C1125 461,1125 458,1126 457C1127 457,1127 457,1128 457C1128 457,1147 478,1158 490C1166 499,1167 499,1169 499C1173 499,1173 501,1173 470C1173 440,1173 442,1170 441C1165 441,1166 440,1166 463C1166 480,1165 483,1165 483C1163 485,1161 483,1151 472C1149 468,1143 463,1140 459C1137 456,1132 450,1129 448C1123 441,1121 440,1118 442M1292 442C1291 443,1291 497,1292 499C1293 500,1334 500,1335 499C1335 498,1336 497,1336 496C1336 493,1336 493,1319 493C1304 493,1300 493,1299 491C1299 491,1299 475,1299 475C1300 473,1302 473,1316 473C1330 473,1330 473,1331 472C1332 470,1332 468,1331 467C1330 466,1328 466,1316 466C1303 466,1301 466,1300 465C1299 464,1299 464,1299 457C1299 449,1299 449,1300 448C1301 448,1304 448,1317 448C1332 448,1333 447,1334 447C1335 445,1335 443,1334 442C1333 441,1332 441,1313 441C1296 441,1293 441,1292 442M1458 442C1457 444,1457 498,1458 499C1459 499,1463 499,1464 498C1465 497,1465 497,1465 489C1464 478,1464 478,1474 479C1479 479,1482 479,1482 479C1483 480,1487 484,1494 495C1497 499,1500 501,1504 499C1505 498,1505 497,1493 482C1491 479,1491 477,1495 475C1501 471,1504 466,1504 459C1504 452,1501 447,1495 444C1490 441,1487 441,1472 441C1459 441,1459 441,1458 442M1560 442C1560 442,1555 451,1550 461C1546 471,1540 483,1537 488C1532 499,1532 500,1536 500C1539 500,1540 499,1543 493C1544 490,1546 487,1546 487C1548 486,1575 486,1576 487C1577 487,1578 490,1580 492C1583 498,1584 499,1587 499C1590 499,1591 498,1589 494C1588 492,1585 487,1583 483C1582 479,1577 470,1574 463C1570 456,1567 449,1566 447C1563 441,1562 440,1560 442M1728 442C1728 443,1725 448,1723 453C1720 458,1714 470,1710 480C1705 489,1702 497,1702 497C1701 499,1704 500,1707 499C1708 498,1709 498,1711 493C1715 486,1713 486,1730 486C1747 486,1746 486,1750 493C1752 498,1753 499,1756 499C1761 499,1760 497,1752 483C1750 479,1747 473,1746 470C1744 467,1741 460,1738 455C1736 449,1734 445,1734 445C1734 442,1730 441,1728 442M144 447C131 453,125 464,129 476C132 485,138 491,144 492C150 494,152 494,155 494C157 493,159 493,161 493C176 490,182 466,172 454C166 447,153 444,144 447M331 446C322 448,316 452,313 459C312 462,312 463,312 469L312 476 314 480C315 482,316 485,318 486C327 499,349 496,356 481C363 468,357 452,344 448C340 446,335 446,331 446M226 447L225 448 225 464C225 484,225 491,226 493C228 494,242 494,247 493C253 492,259 489,262 485C266 479,267 476,266 469C266 463,266 463,265 459C261 453,257 449,249 447C244 446,228 446,226 447M595 448C578 453,573 474,586 487C594 495,611 495,620 486C630 475,627 456,614 450C609 447,601 446,595 448M759 448C747 452,740 464,743 476C748 495,774 499,785 483C794 470,787 452,773 448C769 447,762 447,759 448M1473 448C1464 448,1465 447,1465 460C1465 473,1464 472,1477 472C1488 472,1490 471,1494 468C1499 463,1499 455,1493 451C1490 448,1486 447,1473 448M1632 448C1629 449,1630 448,1630 470C1630 491,1630 491,1631 492C1632 493,1646 493,1652 492C1658 491,1664 487,1666 482C1673 467,1665 450,1651 448C1647 447,1633 447,1632 448M1730 455C1729 455,1719 476,1719 478C1719 478,1719 478,1720 479C1721 480,1740 480,1741 479C1742 477,1741 475,1732 456C1731 455,1731 454,1730 455M988 456C986 459,978 477,978 477C978 479,979 480,989 480C999 480,1001 479,1001 478C1001 477,993 461,991 457C990 456,988 455,988 456M1555 466C1552 472,1550 478,1550 478C1550 480,1552 480,1562 480C1574 479,1574 480,1568 467C1563 457,1562 456,1561 456C1561 456,1558 460,1555 466M1787 462C1780 466,1780 475,1787 479C1796 486,1807 472,1798 464C1795 461,1791 460,1787 462M83 463C78 464,76 470,80 476C82 480,88 480,93 476C100 470,93 460,83 463"/>
+    </svg>
+  </div>
+</div>
 
 <!-- Sprite de icones. Um <symbol> por desenho, usado quantas vezes precisar
      com <use>. Custa uma copia do caminho no arquivo em vez de uma por
