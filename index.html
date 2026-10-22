@@ -1193,21 +1193,46 @@ h3{font-size:1.18rem}
 @media (max-width:400px){.insta__leque{--passo:62px;--card:122px;height:225px}}
 
 /* ====================== convenios ====================== */
-.convenios{display:flex;flex-wrap:wrap;gap:.9rem;margin-top:1.8rem}
+/* Logo + nome escrito (21/10/2026). O nome continua em texto de proposito: e
+   ele que indexa "dentista que atende PASA", a logo so ajuda o olho a achar o
+   proprio plano. Por isso o alt das logos e vazio, pra leitor de tela nao ler
+   o nome duas vezes.
+   Sete planos + o card "Outro plano?" = oito, que fecha 4x2 no desktop e 2x4
+   no celular sem buraco na grade. Se entrar convenio novo, o card do WhatsApp
+   continua por ultimo e a grade aceita um buraco no fim. */
+.convenios{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin-top:1.8rem}
+@media (min-width:760px){.convenios{grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem}}
 .convenio{
-  display:flex;flex-direction:column;gap:.15rem;
-  padding:1rem 1.6rem;border-radius:var(--raio);
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
-  min-width:min(230px,100%);
+  display:flex;flex-direction:column;gap:.2rem;
+  padding:.55rem .55rem .9rem;border-radius:var(--raio);
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+  transition:transform .25s ease,background-color .25s ease,border-color .25s ease;
 }
-.convenio b{font-family:Georgia,serif;font-size:1.3rem;letter-spacing:.06em;color:#fff}
-.convenio span{font-size:.8rem;color:#C6B8A8}
-/* ⚠️ NO CELULAR OS SETE CARDS OCUPAM A LARGURA INTEIRA. Enquanto eram dois
-   dava pra deixar cada um do tamanho do proprio texto; com sete empilhados a
-   borda direita vira uma escadinha — o do IPSM e quase o dobro do da AMS. No
-   desktop eles continuam do tamanho do conteudo, porque ali fecham linha e a
-   escadinha nao aparece. */
-@media (max-width:560px){.convenio{width:100%}}
+@media (hover:hover){
+  .convenio:hover{transform:translateY(-3px);background:rgba(255,255,255,.11);border-color:rgba(201,169,106,.55)}
+}
+/* A placa branca e o "fundo de cartaz" das marcas: logo colorida em fundo
+   marrom perde contraste e briga com a paleta, em branco fica como no
+   material de cada plano. Cada logo tem proporcao diferente (o IPSM e quase
+   quadrado, a Odontoprev e seis vezes mais larga que alta), entao o tamanho
+   vem por logo em --lw/--lh, ajustado no olho pra todas pesarem igual. */
+/* ⚠️ A logo e absoluta de proposito. Com ela como item de grid, o max-height
+   em % nao tem altura definida pra se apoiar e e ignorado: o IPSM, que e mais
+   alto que largo, saia do tamanho natural e cortado pela placa. Absoluta, a %
+   passa a contar sobre a placa, que tem altura certa pelo aspect-ratio. */
+.convenio__logo{
+  position:relative;display:grid;place-items:center;aspect-ratio:16/9;margin-bottom:.55rem;
+  background:#fff;border-radius:calc(var(--raio) - 5px);overflow:hidden;
+}
+.convenio__logo img{position:absolute;inset:0;margin:auto;width:auto;height:auto;max-width:var(--lw,72%);max-height:var(--lh,58%)}
+.convenio b,.convenio span{padding-inline:.45rem}
+.convenio b{font-family:Georgia,serif;font-size:clamp(1rem,2.6vw,1.15rem);font-weight:400;line-height:1.2;color:#fff}
+.convenio span{font-size:.78rem;line-height:1.35;color:#C6B8A8}
+.convenio--outro{text-decoration:none;border-style:dashed;border-color:rgba(201,169,106,.5)}
+.convenio--outro .convenio__logo{background:rgba(201,169,106,.12);color:var(--dourado-claro)}
+.convenio--outro .convenio__logo svg{width:34px;height:34px;fill:currentColor}
+.convenio--outro span{color:var(--dourado-claro)}
+@media (prefers-reduced-motion:reduce){.convenio{transition:none}.convenio:hover{transform:none}}
 
 /* ====================== dupla foto + texto ====================== */
 .dupla{display:grid;gap:clamp(2rem,5vw,3.5rem);align-items:center}
@@ -1225,7 +1250,11 @@ h3{font-size:1.18rem}
    detalhes que ninguem pergunta por telefone e que decidem a visita de quem
    usa cadeira de rodas, chega de carro ou so quer saber se paga no cartao.
 
-   ⚠️ QUATRO BLOCOS, UMA FRASE CADA — nao voltar pra lista de marcadores.
+   ⚠️ UMA FRASE POR BLOCO — nao voltar pra lista de marcadores.
+   Eram quatro blocos; em 21/10/2026 viraram seis, a pedido do usuario: entrou
+   Wi-Fi, entrou Pix, e "Pagamento e agendamento" se dividiu em dois pra grade
+   fechar 3x2 no desktop. Cada bloco ganhou icone do Lucide, e o de pagamento
+   ganhou as logos (Pix, Visa, Mastercard, Elo).
    A primeira versao copiava a ficha do Google campo a campo: 6 blocos e 15
    itens, com "Entrada acessivel para cadeira de rodas / Banheiro acessivel
    para cadeira de rodas / Estacionamento acessivel para cadeira de rodas" em
@@ -1239,12 +1268,30 @@ h3{font-size:1.18rem}
   display:grid;gap:2rem 2.2rem;margin-top:2.4rem;
   grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
 }
+@media (min-width:900px){.comodidades{grid-template-columns:repeat(3,1fr)}}
 .comodidade h3{
+  display:flex;align-items:center;gap:.65rem;
   font-family:Georgia,serif;font-size:1.05rem;color:var(--marrom);
   padding-bottom:.7rem;margin-bottom:.9rem;
   border-bottom:1px solid var(--borda);
 }
+.comodidade__ico{
+  flex:none;width:36px;height:36px;border-radius:50%;
+  display:grid;place-items:center;
+  background:rgba(201,169,106,.2);color:var(--dourado);
+}
+.comodidade__ico svg{width:18px;height:18px}
 .comodidade p{margin:0;font-size:.94rem;color:var(--texto-suave);line-height:1.55}
+/* Logos de pagamento: a altura vem por logo em --h, porque o Pix tem simbolo
+   + texto e o Mastercard so os circulos; na mesma altura um some e o outro
+   grita. O alt aqui e o nome, porque Visa/Mastercard/Elo nao estao escritos
+   no texto do bloco. */
+.pagamentos{display:flex;flex-wrap:wrap;gap:.45rem;margin:.9rem 0 0;padding:0;list-style:none}
+.pagamentos li{
+  height:34px;padding:0 .75rem;display:grid;place-items:center;
+  background:var(--papel);border:1px solid var(--borda);border-radius:8px;
+}
+.pagamentos img{height:var(--h,15px);width:auto}
 
 /* ====================== duvidas ====================== */
 .faq{display:grid;gap:.7rem}
@@ -1853,39 +1900,60 @@ h3{font-size:1.18rem}
          comerciais vem depois. Se entrar convenio novo, ele entra no fim, a
          menos que seja de empresa grande da regiao.
          Lista confirmada pelo usuario em 27/08/2026, a partir da arte da
-         clinica com os sete logos. -->
+         clinica com os sete logos.
+         LOGOS (21/10/2026), em assets/img/convenios/, tiradas do site oficial
+         de cada plano, com tres excecoes que precisam ser lembradas:
+         - Saude AMS nao tem logo propria publicada: vai a da Vale, que e quem
+           mantem o plano.
+         - BB Dental hoje se chama Brasildental no site do proprio plano, e a
+           logo e essa. O nome escrito continua "BB Dental", que e o que o
+           paciente fala e busca.
+         - IPSM so publica a logo em 60px. Esta foi redesenhada em vetor por
+           cima da original (triangulo + tres circulos) e exportada em WebP.
+         A da PASA vem sem o selo "35 anos" e a da Bradesco sem o "seguros". -->
     <div class="convenios">
       <div class="convenio">
+        <div class="convenio__logo" style="--lw:80%;--lh:62%"><img src="assets/img/convenios/pasa.webp" alt="" width="520" height="234" loading="lazy" decoding="async"></div>
         <b>PASA</b>
         <span>Vale e Fundação Vale</span>
       </div>
       <div class="convenio">
+        <div class="convenio__logo" style="--lw:66%;--lh:66%"><img src="assets/img/convenios/vale.svg" alt="" width="125" height="64" loading="lazy" decoding="async"></div>
         <b>Saúde AMS</b>
         <span>Vale</span>
       </div>
       <div class="convenio">
+        <div class="convenio__logo" style="--lh:74%"><img src="assets/img/convenios/ipsm.webp" alt="" width="300" height="329" loading="lazy" decoding="async"></div>
         <b>IPSM</b>
-        <span>Servidores militares de MG — PMMG e CBMMG</span>
+        <span>Policiais e bombeiros militares de MG</span>
       </div>
       <div class="convenio">
+        <div class="convenio__logo" style="--lw:78%"><img src="assets/img/convenios/odontoprev.svg" alt="" width="192" height="33" loading="lazy" decoding="async"></div>
         <b>Odontoprev</b>
         <span>Rede Unna</span>
       </div>
       <div class="convenio">
+        <div class="convenio__logo" style="background:#FFE616;--lw:86%"><img src="assets/img/convenios/brasildental.webp" alt="" width="520" height="113" loading="lazy" decoding="async"></div>
         <b>BB Dental</b>
-        <span>Banco do Brasil</span>
+        <span>Brasildental, do Banco do Brasil</span>
       </div>
       <div class="convenio">
+        <div class="convenio__logo" style="--lw:74%"><img src="assets/img/convenios/bradesco.svg" alt="" width="974" height="257" loading="lazy" decoding="async"></div>
         <b>Bradesco Dental</b>
-        <span>Plano odontológico</span>
+        <span>Bradesco Seguros</span>
       </div>
       <div class="convenio">
+        <div class="convenio__logo" style="--lh:66%"><img src="assets/img/convenios/amil-dental.webp" alt="" width="440" height="251" loading="lazy" decoding="async"></div>
         <b>Amil Dental</b>
         <span>Plano odontológico</span>
       </div>
-    </div>
-    <div class="hero__acoes">
-      <a class="btn" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20queria%20saber%20se%20voc%C3%AAs%20atendem%20o%20meu%20plano." target="_blank" rel="noopener">Conferir meu plano</a>
+      <!-- Este card substitui o botao "Conferir meu plano" que ficava embaixo
+           da lista: mesmo link, mesma mensagem, e ainda fecha a grade. -->
+      <a class="convenio convenio--outro" href="https://wa.me/5531972159568?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20queria%20saber%20se%20voc%C3%AAs%20atendem%20o%20meu%20plano." target="_blank" rel="noopener">
+        <div class="convenio__logo"><svg aria-hidden="true"><use href="#i-zap"/></svg></div>
+        <b>Outro plano?</b>
+        <span>Chame no WhatsApp que a gente confere</span>
+      </a>
     </div>
   </div>
 </section>
@@ -2037,22 +2105,43 @@ h3{font-size:1.18rem}
 
     <div class="comodidades">
       <div class="comodidade">
-        <h3>Acessibilidade</h3>
+        <h3><span class="comodidade__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="4" r="1"/><path d="m18 19 1-7-6 1"/><path d="m5 8 3-3 5.5 3-2.36 3.5"/><path d="M4.24 14.5a5 5 0 0 0 6.88 6"/><path d="M13.76 17.5a5 5 0 0 0-6.88-6"/></svg></span>Acessibilidade</h3>
         <p>Entrada, banheiro e estacionamento acessíveis para cadeira de rodas.</p>
       </div>
 
       <div class="comodidade">
-        <h3>Estacionamento</h3>
+        <h3><span class="comodidade__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 17V7h4a3 3 0 0 1 0 6H9"/></svg></span>Estacionamento</h3>
         <p>No local, coberto e gratuito.</p>
       </div>
 
+      <!-- Wi-Fi entrou em 21/10/2026, informado pelo usuario (nao estava na
+           ficha do Google). -->
       <div class="comodidade">
-        <h3>Pagamento e agendamento</h3>
-        <p>Cartão de crédito, cartão de débito e pagamento por aproximação. Atendimento com hora marcada, agendada pelo WhatsApp.</p>
+        <h3><span class="comodidade__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.859a10 10 0 0 1 14 0"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/></svg></span>Wi-Fi</h3>
+        <p>Wi-Fi para os pacientes enquanto aguardam o atendimento.</p>
+      </div>
+
+      <!-- Pix entrou em 21/10/2026, informado pelo usuario. As bandeiras de
+           cartao sao as que toda maquininha aceita no Brasil; se a clinica
+           disser que alguma nao passa, tira daqui. -->
+      <div class="comodidade">
+        <h3><span class="comodidade__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><path d="M6 14h2"/></svg></span>Pagamento</h3>
+        <p>Pix, cartão de crédito, cartão de débito e pagamento por aproximação.</p>
+        <ul class="pagamentos" aria-label="Formas de pagamento aceitas">
+          <li><img src="assets/img/pagamento/pix.webp" alt="Pix" width="262" height="72" style="--h:19px" loading="lazy" decoding="async"></li>
+          <li><img src="assets/img/pagamento/visa.svg" alt="Visa" width="1000" height="325" style="--h:13px" loading="lazy" decoding="async"></li>
+          <li><img src="assets/img/pagamento/mastercard.svg" alt="Mastercard" width="152" height="94" style="--h:20px" loading="lazy" decoding="async"></li>
+          <li><img src="assets/img/pagamento/elo.svg" alt="Elo" width="86" height="28" style="--h:14px" loading="lazy" decoding="async"></li>
+        </ul>
       </div>
 
       <div class="comodidade">
-        <h3>Acolhimento</h3>
+        <h3><span class="comodidade__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v3"/><path d="M16 2v3"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="m9 15 2 2 4-4"/></svg></span>Agendamento</h3>
+        <p>Atendimento com hora marcada, agendada pelo WhatsApp.</p>
+      </div>
+
+      <div class="comodidade">
+        <h3><span class="comodidade__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762"/></svg></span>Acolhimento</h3>
         <p>Espaço seguro para a comunidade LGBTQ+ e para pessoas transgênero, com banheiro de gênero neutro.</p>
       </div>
     </div>
